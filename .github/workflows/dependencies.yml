@@ -1,0 +1,30 @@
+name: Install dependencies
+
+on: workflow_dispatch
+
+jobs:
+  Install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install required tools
+        uses: Roblox/setup-foreman@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies using wally
+        shell: bash
+        run: |
+          rm -f wally.lock
+          wally install
+
+      - name: Push changes
+        shell: bash
+        run: |
+          rm -rf .foreman-install
+          git config --global user.name 'github-actions'
+          git add -A || echo 'No changes to add'
+          git commit -m "Installed dependencies" || echo 'No changes to commit'
+          git push || echo 'No changes to push'
