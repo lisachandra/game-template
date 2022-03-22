@@ -1,5 +1,5 @@
 [package]
-name = "zxibs/music-pads"
+name = "zxibs/game-template"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -7,8 +7,10 @@ realm = "shared"
 [dependencies]
 ReplicaService = "brittonfischer/replicaservice@^0"
 ProfileService = "brittonfischer/profileservice@^2"
+RoactSpring = "chriscerie/roact-spring@^0"
+RoactHooks = "kampfkarren/roact-hooks@^0"
 Janitor = "howmanysmall/janitor@^1"
 Helium = "howmanysmall/helium@^1"
-Flipper = "reselim/flipper@^2"
 Promise = "evaera/promise@^3"
+Roact = "roblox/roact@^1"
 t = "osyrisrblx/t@^3"
