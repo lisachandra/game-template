@@ -37,7 +37,10 @@ end
 local function useDependency(callback: (last: table?, new: table?) -> (), dependencies: table?, discriminator: any?)
 	local storage: table = Matter.useHookState(discriminator, cleanup)
 
-	if (storage.dependencies and dependenciesDifferent(dependencies, storage.dependencies)) or storage.dependencies == nil then
+	if
+		(storage.dependencies and dependenciesDifferent(dependencies, storage.dependencies))
+		or storage.dependencies == nil
+	then
 		callback(storage.dependencies, dependencies)
 	end
 

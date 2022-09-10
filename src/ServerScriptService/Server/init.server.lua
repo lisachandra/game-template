@@ -14,15 +14,17 @@ local world = Matter.World.new()
 local loop = Matter.Loop.new(world)
 
 local function onPlayerAdded(Player: Player)
-    Player:SetAttribute("entityId", world:spawn(
-		Components.PlayerData({
+	Player:SetAttribute(
+		"entityId",
+		world:spawn(Components.PlayerData({
 			Player = Player,
 			Janitor = Janitor.new(),
-		})
-	))
+		}))
+	)
 end
 
-local systems = {}; for _i, system in script.Systems:GetChildren() do
+local systems = {}
+for _i, system in script.Systems:GetChildren() do
 	if system.ClassName == "ModuleScript" then
 		table.insert(systems, require(system))
 	end
@@ -39,5 +41,5 @@ end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(Player)
-    world:despawn(Player:GetAttribute("entityId"))
+	world:despawn(Player:GetAttribute("entityId"))
 end)
