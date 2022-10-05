@@ -5,28 +5,36 @@ local Packages = ReplicatedStorage:FindFirstChild("Packages")
 local success, APIDump = require(Packages:FindFirstChild("APIDump")):await()
 
 if not success then
-    game:GetService("Players").LocalPlayer:Kick("Error fetching api.")
+	game:GetService("Players").LocalPlayer:Kick("Error fetching api.")
 end
 
 for classIndex, Class in APIDump.Classes do
-    if Class.Tags and table.find(Class.Tags, "Service") then
-        APIDump.Classes[classIndex] = nil
-    else
-        for propertyIndex, Property in Class.Members do
-            if Property.MemberType ~= "Property"
-                or (Property.Tags and (table.find(Property.Tags, "NotScriptable") or table.find(Property.Tags, "ReadOnly")))
-                or ((type(Property.Security) == "string" and Property.Security ~= "None") or Property.Security.Read ~= "None" or Property.Security.Write ~= "None")
-            then
-                Class.Members[propertyIndex] = nil
-            else
-                Class.Members[propertyIndex] = Property.Name
-            end
-        end
-    end
+	if Class.Tags and table.find(Class.Tags, "Service") then
+		APIDump.Classes[classIndex] = nil
+	else
+		for propertyIndex, Property in Class.Members do
+			if
+				Property.MemberType ~= "Property"
+				or (Property.Tags and (table.find(Property.Tags, "NotScriptable") or table.find(
+					Property.Tags,
+					"ReadOnly"
+				)))
+				or (
+					(type(Property.Security) == "string" and Property.Security ~= "None")
+					or Property.Security.Read ~= "None"
+					or Property.Security.Write ~= "None"
+				)
+			then
+				Class.Members[propertyIndex] = nil
+			else
+				Class.Members[propertyIndex] = Property.Name
+			end
+		end
+	end
 end
 
 local function merge(into: table, from: table, none: any?)
-    local new = table.clone(into)
+	local new = table.clone(into)
 
 	for key, value in from do
 		if value == none then
@@ -35,7 +43,7 @@ local function merge(into: table, from: table, none: any?)
 		new[key] = value
 	end
 
-    return new
+	return new
 end
 
 local RoactTemplate = {}
@@ -45,58 +53,63 @@ RoactTemplate.Wrap = newproxy(false)
 export type props = table
 
 local function fetchProperties(container: table, class: string, instance: Instance)
-    for _index, Class in APIDump.Classes do
-        if Class.Name == class then
-            for _index, Property in Class.Members do
-                container[Property] = instance[Property]
-            end
+	for _index, Class in APIDump.Classes do
+		if Class.Name == class then
+			for _index, Property in Class.Members do
+				container[Property] = instance[Property]
+			end
 
-            if Class.Superclass then
-                return fetchProperties(container, Class.Superclass, instance)
-            end
-        end
-    end
+			if Class.Superclass then
+				return fetchProperties(container, Class.Superclass, instance)
+			end
+		end
+	end
 
-    return container
+	return container
 end
 
 function RoactTemplate.fromInstance(Roact, instance: Instance)
-    local Type = Roact.Type
+	local Type = Roact.Type
 
-    local defaultProps = fetchProperties({}, instance.ClassName, instance)
-    local defaultChildren = {}
-    
-    local instanceChildren = instance:GetChildren()
-    local children = {}
+	local defaultProps = fetchProperties({}, instance.ClassName, instance)
+	local defaultChildren = {}
 
-    for _index, child in instanceChildren do
-        defaultChildren[child.Name] = RoactTemplate.fromInstance(Roact, child)
-    end
+	local instanceChildren = instance:GetChildren()
+	local children = {}
 
-    for key, element in defaultChildren do
-        children[key] = Roact.createElement(element)
-    end
+	for _index, child in instanceChildren do
+		defaultChildren[child.Name] = RoactTemplate.fromInstance(Roact, child)
+	end
 
-    return function(props: props)
-        props[Roact.Children] = props[Roact.Children] or {}
+	for key, element in defaultChildren do
+		children[key] = Roact.createElement(element)
+	end
 
-        for key, child in props[Roact.Children] do
-            props[Roact.Children][key] = Type.of(child) and child or child[RoactTemplate.Wrap] and Roact.createElement(child.component, merge(child.props, { [child.key] = defaultChildren[key] })) or Roact.createElement(defaultChildren[key], child)
-        end
+	return function(props: props)
+		props[Roact.Children] = props[Roact.Children] or {}
 
-        props[Roact.Children] = merge(children, props[Roact.Children], RoactTemplate.None)
+		for key, child in props[Roact.Children] do
+			props[Roact.Children][key] = Type.of(child) and child
+				or child[RoactTemplate.Wrap] and Roact.createElement(
+					child.component,
+					merge(child.props, { [child.key] = defaultChildren[key] })
+				)
+				or Roact.createElement(defaultChildren[key], child)
+		end
 
-        return Roact.createElement(instance.ClassName, merge(defaultProps, props, RoactTemplate.None))
-    end
+		props[Roact.Children] = merge(children, props[Roact.Children], RoactTemplate.None)
+
+		return Roact.createElement(instance.ClassName, merge(defaultProps, props, RoactTemplate.None))
+	end
 end
 
 function RoactTemplate.wrapped(component: any, props: props?, templateKey: any?)
-    return {
-        [RoactTemplate.Wrap] = true,
-        component = component,
-        props = props or {},
-        key = templateKey or "template",
-    }
+	return {
+		[RoactTemplate.Wrap] = true,
+		component = component,
+		props = props or {},
+		key = templateKey or "template",
+	}
 end
 
 return RoactTemplate
