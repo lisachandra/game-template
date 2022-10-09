@@ -41,5 +41,10 @@ end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(Player)
-	world:despawn(Player:GetAttribute("entityId"))
+    local id: number = Player:GetAttribute("entityId") 
+
+    local PlayerData: Types.PlayerData = world:get(id, Components.PlayerData)
+
+    PlayerData.Janitor:Destroy()
+	world:despawn(id)
 end)
