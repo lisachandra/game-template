@@ -16,6 +16,7 @@ Janitor = "howmanysmall/janitor@^1"
 PartCache = "4igz/partcache@^1"
 Promise = "evaera/promise@^3"
 Llama = "freddylist/llama@^1"
+APIDump = "zxibs/apidump@^1
 Matter = "evaera/matter@^0"
 Rodux = "roblox/rodux@^3"
 Roact = "roblox/roact@^1"
