@@ -7,6 +7,7 @@ realm = "shared"
 [dependencies]
 ReplicaService = "brittonfischer/replicaservice@^0"
 ProfileService = "brittonfischer/profileservice@^2"
+RoactTemplate = "zxibs/roact-template@^1"
 RoactSpring = "chriscerie/roact-spring@^0"
 RoduxHooks = "solarhorizon/rodux-hooks@^0"
 FastCast = "encodedvenom/fastcastredux@^0"
