@@ -1,4 +1,4 @@
-local Promise = script.Parent:FindFirstChild("Promise"); return Promise.new(function(resolve)
+local Promise = require(script.Parent:FindFirstChild("Promise")); return Promise.new(function(resolve)
     local HttpService = game:GetService("HttpService")
     local RunService = game:GetService("RunService"); if RunService:IsClient() then
         resolve(HttpService:JSONDecode(script:WaitForChild("GetAPIDump"):InvokeServer()))
