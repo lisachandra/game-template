@@ -1,0 +1,8 @@
+[package]
+name = "zxibs/apidump"
+version = "1.0.1"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+Promise = "evaera/promise@^3"
