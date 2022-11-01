@@ -38,7 +38,7 @@ end)
 for _i, system in ipairs(systems) do
 	local success, err = Promise.try(system.run):await()
 	if not success then
-		error("Error in system: " .. system.name .. "\n" .. err)
+		error("Error in system: " .. system.name .. "\n" .. tostring(err))
 	end
 end
 
