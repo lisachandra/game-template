@@ -1,1 +1,1 @@
-return require(script.Parent.Parent["stravant_goodsignal@0.2.1]["goodsignal"])
+return require(script.Parent.Parent["sleitnick_signal@1.2.1"]["signal"])
