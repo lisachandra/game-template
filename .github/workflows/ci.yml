@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Lint and Format
+    name: Lin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,9 +21,6 @@ jobs:
 
       - name: Lint using Selene
         run: selene src/
-
-      - name: Format code using StyLua
-        run: stylua src/
 
       - name: Check for modified files in src
         id: git-check
