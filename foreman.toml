@@ -1,4 +1,3 @@
 [tools]
-stylua = { source = "JohnnyMorganz/stylua", version = "x" }
 selene = { source = "Kampfkarren/selene", version = "x" }
 wally = { source = "UpliftGames/wally", version = "x" }
