@@ -1,35 +1,30 @@
 name: CI
 
-on: 
+on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+    - main
+
+  pull_request:
+    branches:
+    - main
 
 jobs:
-  ci:
-    name: Lin
+  analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Install required tools
-        uses: Roblox/setup-foreman@v1
+      - uses: Roblox/setup-foreman@v1
         with:
+          version: "^1.0.1"
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Lint using Selene
-        run: selene src/
+      - name: Download global Roblox types
+        shell: bash
+        run: curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-analyze-rojo/master/globalTypes.d.lua
 
-      - name: Check for modified files in src
-        id: git-check
-        run: echo ::set-output name=modified::$(if git diff --quiet HEAD -- src; then echo "false"; else echo "true"; fi)
-          
-      - name: Push changes
-        if: steps.git-check.outputs.modified == 'true'
-        run: |
-          git config --global user.name 'github-actions'
-          git add src/
-          git commit -m "Formatted code using StyLua"
-          git push
+      - name: Analyze
+        shell: bash
+        run: luau-analyze --project=default.project.json --defs=globalTypes.d.lua --defs=testez.d.lua src/
+        

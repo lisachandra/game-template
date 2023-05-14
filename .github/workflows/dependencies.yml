@@ -3,22 +3,31 @@ name: Install dependencies
 on: workflow_dispatch
 
 jobs:
-  Install:
+  install:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Install required tools
-        uses: Roblox/setup-foreman@v1
+      - uses: Roblox/setup-foreman@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: wally-package-types
+          version: "^1"
 
       - name: Install dependencies using wally
         shell: bash
         run: |
           rm -f wally.lock
           wally install
+
+      - name: Fix luau types
+        shell: bash
+        run: |
+          rojo sourcemap default.project.json --output sourcemap.json
+          wally-package-types --sourcemap sourcemap.json Packages/
 
       - name: Push changes
         shell: bash

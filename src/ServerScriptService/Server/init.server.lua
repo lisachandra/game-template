@@ -11,7 +11,7 @@ local Matter = require(Packages:FindFirstChild("Matter"))
 local Components = require(Server:FindFirstChild("Components"))
 
 -- Intialize APIDump
-require(Packages.Index["zxibs_apidump@1.0.2"]["apidump"])
+require(Packages._Index["zxibs_apidump@1.0.2"]["apidump"])
 
 local world = Matter.World.new()
 local loop = Matter.Loop.new(world)
