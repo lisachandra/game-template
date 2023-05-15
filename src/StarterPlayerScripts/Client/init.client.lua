@@ -1,3 +1,5 @@
+--!nonstrict
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
@@ -11,10 +13,19 @@ if not Player.Character then
 	Player.CharacterAdded:Wait()
 end
 
-local systems = {}
-local modules = script.Systems:GetChildren()
+local systems: { system } = {}
+local modules: { ModuleScript } = script.Systems:GetChildren()
 
-local function merge(a, b, none)
+type system = {
+	priority: number,
+	run: () -> boolean,
+	name: string,
+}
+
+local function merge<A, B>(a: A, b: B, none: any?): A & B
+	assert(type(a) == "table")
+	assert(type(b) == "table")
+
 	local new = table.clone(a)
 	for k, v in b do
 		if none ~= nil and v == none then
@@ -24,7 +35,7 @@ local function merge(a, b, none)
 		new[k] = v
 	end
 
-	return new
+	return new :: any
 end
 
 for _index, module in modules do

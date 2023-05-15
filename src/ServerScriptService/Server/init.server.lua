@@ -1,3 +1,5 @@
+--!nonstrict
+
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,6 +11,7 @@ local Packages = ReplicatedStorage:FindFirstChild("Packages")
 local Janitor = require(Packages:FindFirstChild("Janitor"))
 local Matter = require(Packages:FindFirstChild("Matter"))
 local Components = require(Server:FindFirstChild("Components"))
+local Types = require(Server:FindFirstChild("Types"))
 
 -- Intialize APIDump
 require(Packages._Index["zxibs_apidump@1.0.2"]["apidump"])
@@ -27,7 +30,7 @@ local function onPlayerAdded(Player: Player)
 end
 
 local systems = {}
-for _i, system in script.Systems:GetChildren() do
+for _i, system: ModuleScript in script.Systems:GetChildren() do
 	if system.ClassName == "ModuleScript" then
 		table.insert(systems, require(system))
 	end
