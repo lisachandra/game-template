@@ -29,13 +29,16 @@ jobs:
         shell: bash
         run: |
           wally install
-          curl -O https://github.com/JohnnyMorganz/luau-lsp/raw/main/scripts/globalTypes.d.lua
-          curl -O https://gist.github.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/9fa3dd6e1d9f65733c1b00fef092ecbf782b8d44/utils.d.lua
+          curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.lua
+          curl -O https://gist.githubusercontent.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/9fa3dd6e1d9f65733c1b00fef092ecbf782b8d44/utils.d.lua
 
       - name: Analyze
         shell: bash
         run: |
           rojo sourcemap default.project.json --output sourcemap.json
           wally-package-types --sourcemap sourcemap.json Packages/
-          luau-lsp analyze --no-strict-dm-types --sourcemap=sourcemap.json --definitions=globalTypes.d.lua --definitions=utils.d.lua --base-luaurc=.luaurc --ignore=Packages/** src/
+          luau-lsp analyze --no-strict-dm-types --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
+            --definitions=globalTypes.d.lua \
+            --definitions=utils.d.lua \
+            src/
         
