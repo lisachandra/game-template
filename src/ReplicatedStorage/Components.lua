@@ -1,9 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Packages = script.Parent.Parent.Packages
 
-local Packages = ReplicatedStorage:FindFirstChild("Packages")
-
-local Janitor = require(Packages:FindFirstChild("Janitor"))
-local Matter = require(Packages:FindFirstChild("Matter"))
+local Janitor = require(Packages.Janitor)
+local Matter = require(Packages.Matter)
 
 type Janitor = Janitor.Janitor
 
@@ -28,7 +26,7 @@ local COMPONENTS = {
 
 local Components: Components = {} :: Components
 
-for _, name in COMPONENTS do
+for _index, name in COMPONENTS do
 	Components[name] = Matter.component(name) :: any
 end
 
