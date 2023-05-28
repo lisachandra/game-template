@@ -12,6 +12,8 @@ local middlewares
 export type ClientState = { debugEnabled: boolean }
 export type ServerState = {}
 
+export type Store = typeof(Rodux.Store.new())
+
 type Action = {
     type: string,
     value: any?,

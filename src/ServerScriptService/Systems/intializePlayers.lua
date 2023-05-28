@@ -8,9 +8,9 @@ local Janitor = require(Packages.Janitor)
 local Matter = require(Packages.Matter)
 
 local Components = require(Shared.Components)
-local Types = require(Shared.Types)
+local ComponentTypes = require(Shared.ComponentTypes)
 
-local function initializePlayers(world)
+local function initializePlayers(world: Matter.World)
     for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
         player:SetAttribute("serverEntityId", world:spawn(Components.PlayerData({
             Player = player,
@@ -20,7 +20,7 @@ local function initializePlayers(world)
 
     for _index, player: Player in Matter.useEvent(Players, "PlayerRemoving") do
         local id: number = player:GetAttribute("serverEntityId") 
-        local PlayerData: Types.PlayerData = world:get(id, Components.PlayerData)
+        local PlayerData: ComponentTypes.PlayerData = world:get(id, Components.PlayerData)
 
         PlayerData.Janitor:Destroy()
         world:despawn(id)

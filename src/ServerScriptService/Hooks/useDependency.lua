@@ -1,45 +1,22 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Packages = ReplicatedStorage:FindFirstChild("Packages")
+local Packages = ReplicatedStorage.Packages
 
-local Matter = require(Packages:FindFirstChild("Matter"))
+local Matter = require(Packages.Matter)
+local Sift = require(Packages.Sift)
 
 type storage = {
 	dependencies: Array<any>?,
 }
 
-local function dependenciesDifferent(dependencies, lastDependencies)
-	local length = 0
-
-	for index, dependency in dependencies do
-		length += 1
-
-		if dependency ~= lastDependencies[index] then
-			return true
-		end
-	end
-
-	for _ in lastDependencies do
-		length -= 1
-	end
-
-	if length ~= 0 then
+local function useDependency(callback: (last: Array<any>?, new: Array<any>?) -> (), dependencies: Array<any>?, discriminator: string)
+	local storage: table = Matter.useHookState(discriminator, function()
 		return true
-	end
-
-	return false
-end
-
-local function cleanup()
-	return true
-end
-
-local function useDependency(callback: (last: table?, new: table?) -> (), dependencies: table?, discriminator: any?)
-	local storage: table = Matter.useHookState(discriminator, cleanup)
+	end)
 
 	if
-		(storage.dependencies and dependenciesDifferent(dependencies, storage.dependencies))
-		or storage.dependencies == nil
+		((storage.dependencies and dependencies) and Sift.Array.equals(dependencies, storage.dependencies))
+		or (storage.dependencies == nil or dependencies == nil)
 	then
 		callback(storage.dependencies, dependencies)
 	end

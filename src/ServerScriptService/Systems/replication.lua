@@ -9,7 +9,7 @@ local Matter = require(Packages.Matter)
 
 local Components = require(Shared.Components)
 
-local MatterRemote = Remotes.MatterRemote
+local MatterRemote: RemoteEvent = Remotes.MatterRemote
 
 local REPLICATED_COMPONENTS = {
 	"PlayerData",
@@ -21,7 +21,7 @@ for _index, name in REPLICATED_COMPONENTS do
 	replicatedComponents[Components[name]] = true
 end
 
-local function replication(world)
+local function replication(world: Matter.World)
 	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
 		local payload = {}
 

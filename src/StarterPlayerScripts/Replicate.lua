@@ -2,23 +2,29 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Packages = ReplicatedStorage:WaitForChild("Packages")
 
 local RemoteEvent = Remotes:WaitForChild("MatterRemote")
 
-local Components = require(Shared:WaitForChild("Components"))
+local Matter = require(Packages:WaitForChild("Matter"))
 
-local function Replicate(world, store)
+local Components = require(Shared:WaitForChild("Components"))
+local Rodux = require(Shared:WaitForChild("Rodux"))
+
+type payload = Dictionary<Dictionary<{ data: { [any]: any } }>>
+
+local function Replicate(world: Matter.World, store: Rodux.Store)
 	local function debugPrint(...)
-		local state = store:getState()
+		local state: Rodux.ClientState = store:getState()
 
 		if state.debugEnabled then
 			print("Replication>", ...)
 		end
 	end
 
-	local entityIdMap = {}
+	local entityIdMap: Dictionary<number> = {}
 
-	RemoteEvent.OnClientEvent:Connect(function(entities)
+	RemoteEvent.OnClientEvent:Connect(function(entities: payload)
 		for serverEntityId, componentMap in entities do
 			local clientEntityId = entityIdMap[serverEntityId]
 
@@ -32,8 +38,8 @@ local function Replicate(world, store)
 			local componentsToInsert = {}
 			local componentsToRemove = {}
 
-			local insertNames = {}
-			local removeNames = {}
+			local insertNames: Array<string> = {}
+			local removeNames: Array<string> = {}
 
 			for name, container in componentMap do
 				if container.data then
