@@ -11,7 +11,7 @@ local Matter = require(Packages:WaitForChild("Matter"))
 local Components = require(Shared:WaitForChild("Components"))
 local Rodux = require(Shared:WaitForChild("Rodux"))
 
-type payload = Dictionary<Dictionary<{ data: { [any]: any } }>>
+type payload = Dictionary<Dictionary<{ data: table }>>
 
 local function Replicate(world: Matter.World, store: Rodux.Store)
 	local function debugPrint(...)
