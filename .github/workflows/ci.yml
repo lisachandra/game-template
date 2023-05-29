@@ -34,6 +34,14 @@ jobs:
           curl -O https://gist.githubusercontent.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
           cd ..
 
+      - name: Push new definition files
+        shell: bash
+        run: |
+          git config --global user.name 'github-actions'
+          git add definitions/ || echo 'No changes to add'
+          git commit -m "Installed definitions" || echo 'No changes to commit'
+          git push || echo 'No changes to push'
+
       - name: Analyze
         shell: bash
         run: |
@@ -43,12 +51,4 @@ jobs:
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
             src/
-
-      - name: Push new definition files
-        shell: bash
-        run: |
-          git config --global user.name 'github-actions'
-          git add definitions/ || echo 'No changes to add'
-          git commit -m "Installed definitions" || echo 'No changes to commit'
-          git push || echo 'No changes to push'
         
