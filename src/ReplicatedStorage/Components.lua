@@ -10,7 +10,7 @@ type Components = {
 }
 
 export type Component<T> = {
-	patch: (self: any, newData: table) -> Component<T>,
+	patch: (self: any, newData: { [any]: any }) -> Component<T>,
 } & T
 
 export type PlayerData = {
