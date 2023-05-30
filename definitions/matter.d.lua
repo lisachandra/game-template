@@ -1,10 +1,7 @@
 type None = typeof(newproxy(false))
 type Plasma = any
 
-type Component<T> = typeof(setmetatable({}, {} :: {
-    __call: (self: any, ...any) -> ((data: T?) -> ComponentInstance<T>),
-    __tostring: (self: any) -> string,
-}))
+type Component<T> = (self: any, ...any) -> ((data: T?) -> T)
 
 type ComponentInstance<T> = T
 
