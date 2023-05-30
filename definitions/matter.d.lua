@@ -8,7 +8,7 @@ type ComponentInstance<T> = {
 }
 
 type QueryResult<T...> = typeof(setmetatable({} :: {
-    without: (self: any, ...Component<any>) -> QueryResult<T...>,
+    without: (self: any, ...any) -> QueryResult<T...>,
     snapshot: (self: any) -> QueryResult<T...>,
     next: (self: any) -> (number, T...),
 }, {} :: {
@@ -76,13 +76,13 @@ type System = SystemTable | (...any) -> ()
 type Events = { [string]: RBXScriptSignal }
 
 type World = typeof(setmetatable({} :: {
-    spawn: (self: any, ...ComponentInstance<any>) -> number,
-    spawnAt: (self: any, id: number, ...ComponentInstance<any>) -> number,
-    replace: (self: any, id: number, ...ComponentInstance<any>) -> (),
+    spawn: (self: any, ...any) -> number,
+    spawnAt: (self: any, id: number, ...any) -> number,
+    replace: (self: any, id: number, ...any) -> (),
     despawn: (self: any, id: number) -> (),
     clear: (self: any) -> (),
     contains: (self: any, id: number) -> boolean,
-    insert: (self: any, id: number, ...ComponentInstance<any>) -> (),
+    insert: (self: any, id: number, ...any) -> (),
     size: (self: any) -> number,
     queryChanged: <T>(self: any, componentToTrack: Component<T>) -> (() -> (number, ChangeRecord<T>)),
 
@@ -90,7 +90,7 @@ type World = typeof(setmetatable({} :: {
     query: WorldQuery,
     remove: WorldGetOrRemove,
 }, {} :: {
-    __iter: (self: any) -> ((() -> (number, { [Component<any>]: ComponentInstance<any> })), World),
+    __iter: (self: any) -> ((() -> (number, { [any]: any })), World),
 }))
 
 type Loop = {
