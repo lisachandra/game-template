@@ -21,11 +21,11 @@ local function Start(container: Instance)
 	function debugger.findInstanceFromEntity(id: number)
 		if not world:contains(id) then return end
 
-		for key in Components :: Dictionary<Matter.Component<any>> do
+		for key: string, component: Matter.Component<any> in Components do
 			if not instanceKeys[key] then continue end
 
-			local component = world:get(id, Components[key]); if component then
-				return component[instanceKeys[key]]
+			local componentInstance = world:get(id, component); if componentInstance then
+				return componentInstance[instanceKeys[key]]
 			end
 		end
 

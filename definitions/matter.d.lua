@@ -3,10 +3,8 @@ type Plasma = any
 
 type Component<T> = (self: any, ...any) -> ((data: T?) -> T)
 
-type ComponentInstance<T> = T
-
-type ComponentInstanceMeta<T> = {
-    patch: (self: any, newData: T) -> ComponentInstance<T>,
+type ComponentInstance<T> = {
+    patch: (self: any, newData: T) -> T,
 }
 
 type QueryResult<T...> = typeof(setmetatable({} :: {
@@ -18,18 +16,18 @@ type QueryResult<T...> = typeof(setmetatable({} :: {
 }))
 
 type ChangeRecord<T> = {
-    old: ComponentInstance<T>?,
-    new: ComponentInstance<T>?,
+    old: T?,
+    new: T?,
 }
 
 type WorldGetOrRemove =
-	(<T>(self: any, id: number, Component<T>) -> ComponentInstance<T>)
+	(<T>(self: any, id: number, Component<T>) -> T)
 	& (<T, U>(
 		self: any,
 		id: number,
 		Component<T>,
 		Component<U>
-	) -> (ComponentInstance<T>, ComponentInstance<U>))
+	) -> (T, ComponentInstance<U>))
 	& (<T, U, V>(
 		self: any,
 		id: number,
@@ -37,21 +35,21 @@ type WorldGetOrRemove =
 		Component<U>,
 		Component<V>,
 		...any
-	) -> (ComponentInstance<T>, ComponentInstance<U>, ComponentInstance<V>))
+	) -> (T, ComponentInstance<U>, ComponentInstance<V>))
 
 type WorldQuery =
-	(<T>(self: any, Component<T>) -> QueryResult<ComponentInstance<T>>)
+	(<T>(self: any, Component<T>) -> QueryResult<T>)
 	& (<T, U>(
 		self: any,
 		Component<T>,
 		Component<U>
-	) -> QueryResult<ComponentInstance<T>, ComponentInstance<U>>)
+	) -> QueryResult<T, ComponentInstance<U>>)
 	& (<T, U, V>(
 		self: any,
 		Component<T>,
 		Component<U>,
 		Component<V>
-	) -> QueryResult<ComponentInstance<T>, ComponentInstance<U>, ComponentInstance<V>>)
+	) -> QueryResult<T, ComponentInstance<U>, ComponentInstance<V>>)
 	& (<T, U, V, W>(
 		self: any,
 		Component<T>,
@@ -60,7 +58,7 @@ type WorldQuery =
 		Component<W>,
 		...any
 	) -> QueryResult<
-		ComponentInstance<T>,
+		T,
 		ComponentInstance<U>,
 		ComponentInstance<V>,
 		ComponentInstance<W>
