@@ -1,4 +1,4 @@
 {
-  "languageMode": "nonstrict",
+  "languageMode": "strict",
   "lint": {"*": true, "MultiLineStatement": false, "LocalShadow": false}
 }

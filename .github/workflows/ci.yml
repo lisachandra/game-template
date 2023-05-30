@@ -32,6 +32,9 @@ jobs:
           cd definitions
           curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.lua
           curl -O https://gist.githubusercontent.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
+          curl -O https://gist.githubusercontent.com/zxibs/1b861e0123ae548f282b106818202afd/raw/roact.d.lua
+          curl -O https://gist.githubusercontent.com/zxibs/a24c601e5173f0b60df6f72d01010375/raw/matter.d.lua
+          curl -O https://gist.githubusercontent.com/zxibs/e97be8aa7f5d0770eccb3b79b92b1d83/raw/profileService.d.lua
           cd ..
 
       - name: Push new definition files
@@ -51,5 +54,8 @@ jobs:
           luau-lsp analyze --no-strict-dm-types --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
+            --definitions=definitions/roact.d.lua \
+            --definitions=definitions/matter.d.lua \
+            --definitions=definitions/profileService.d.lua \
             src/
         

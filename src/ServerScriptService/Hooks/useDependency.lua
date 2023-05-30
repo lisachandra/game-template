@@ -1,8 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Packages = ReplicatedStorage.Packages
+local Shared = ReplicatedStorage.Shared
 
-local Matter = require(Packages.Matter)
+local Matter = require(Shared.Matter)
 local Sift = require(Packages.Sift)
 
 type storage = {

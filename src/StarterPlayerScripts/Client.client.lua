@@ -1,10 +1,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local StarterPlayerScripts = script.Parent
 
 local Start = require(Shared:WaitForChild("Start"))
 
-local Replicate = require(script.Parent.Replicate)
+local Replicate = require(StarterPlayerScripts.Replicate)
 
-local world, store = Start(script.Parent.Systems)
+local world, store = Start(StarterPlayerScripts.Systems)
 Replicate(world, store)

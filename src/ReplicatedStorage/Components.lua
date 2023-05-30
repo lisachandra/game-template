@@ -1,24 +1,19 @@
 local Packages = script.Parent.Parent.Packages
+local Shared = script.Parent
 
 local Janitor = require(Packages.Janitor)
-local Matter = require(Packages.Matter)
+local Matter = require(Shared.Matter)
 
 type Janitor = Janitor.Janitor
 
 type Components = {
-	PlayerData: new<PlayerData>,
+	PlayerData: Matter.Component<PlayerData>,
 }
 
-export type Component<T> = {
-	patch: (self: any, newData: table) -> Component<T>,
-} & T
-
-export type PlayerData = {
+type PlayerData = {
 	Player: Player,
 	Janitor: Janitor,
 }
-
-type new<T> = (data: T?) -> Component<T>
 
 local COMPONENTS = {
 	"PlayerData",

@@ -1,5 +1,8 @@
 {
     "luau-lsp.types.definitionFiles": [
         "definitions/utils.d.lua",
+        "definitions/roact.d.lua",
+        "definitions/matter.d.lua",
+        "definitions/profileService.d.lua"
     ],
 }

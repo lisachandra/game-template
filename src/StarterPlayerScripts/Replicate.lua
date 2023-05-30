@@ -2,11 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Packages = ReplicatedStorage:WaitForChild("Packages")
 
 local RemoteEvent = Remotes:WaitForChild("MatterRemote")
 
-local Matter = require(Packages:WaitForChild("Matter"))
+local Matter = require(Shared:WaitForChild("Matter"))
 
 local Components = require(Shared:WaitForChild("Components"))
 local Rodux = require(Shared:WaitForChild("Rodux"))
@@ -15,7 +14,7 @@ type payload = Dictionary<Dictionary<{ data: table }>>
 
 local function Replicate(world: Matter.World, store: Rodux.Store)
 	local function debugPrint(...)
-		local state: Rodux.ClientState = store:getState()
+		local state: Rodux.ClientState = store.getState(store :: any)
 
 		if state.debugEnabled then
 			print("Replication>", ...)
@@ -31,12 +30,12 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 			if clientEntityId and next(componentMap) == nil then
 				world:despawn(clientEntityId)
 				entityIdMap[serverEntityId] = nil
-				debugPrint(string.format("Despawn %ds%d", clientEntityId, serverEntityId))
+				debugPrint(string.format("Despawn %ds%s", clientEntityId, serverEntityId))
 				continue
 			end
 
-			local componentsToInsert = {}
-			local componentsToRemove = {}
+			local componentsToInsert: Array<Matter.ComponentInstance<any>> = {}
+			local componentsToRemove: Array<Matter.Component<any>> = {}
 
 			local insertNames: Array<string> = {}
 			local removeNames: Array<string> = {}
@@ -57,7 +56,7 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 				entityIdMap[serverEntityId] = clientEntityId
 
 				debugPrint(
-					string.format("Spawn %ds%d with %s", clientEntityId, serverEntityId, table.concat(insertNames, ","))
+					string.format("Spawn %ds%s with %s", clientEntityId, serverEntityId, table.concat(insertNames, ","))
 				)
 			else
 				if #componentsToInsert > 0 then
@@ -70,7 +69,7 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 
 				debugPrint(
 					string.format(
-						"Modify %ds%d adding %s, removing %s",
+						"Modify %ds%s adding %s, removing %s",
 						clientEntityId,
 						serverEntityId,
 						if #insertNames > 0 then table.concat(insertNames, ", ") else "nothing",

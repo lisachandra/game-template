@@ -1,13 +1,16 @@
+--!nonstrict
+
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Packages = script.Parent.Parent.Packages
+local Shared = script.Parent
 
-local Matter = require(Packages.Matter)
+local Matter = require(Shared.Matter)
 local Plasma = require(Packages.Plasma)
 
-local Rodux = require(script.Parent.Rodux)
-local Components = require(script.Parent.Components)
+local Rodux = require(Shared.Rodux)
+local Components = require(Shared.Components)
 
 local instanceKeys = { PlayerData = "Player" }
 
@@ -18,7 +21,7 @@ local function Start(container: Instance)
 	function debugger.findInstanceFromEntity(id: number)
 		if not world:contains(id) then return end
 
-		for key in Components do
+		for key in Components :: Dictionary<any> do
 			if not instanceKeys[key] then continue end
 
 			local component = world:get(id, Components[key]); if component then

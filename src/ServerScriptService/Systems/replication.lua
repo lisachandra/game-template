@@ -2,10 +2,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
-local Packages = ReplicatedStorage.Packages
 local Remotes = ReplicatedStorage.Remotes
 
-local Matter = require(Packages.Matter)
+local Matter = require(Shared.Matter)
 
 local Components = require(Shared.Components)
 
