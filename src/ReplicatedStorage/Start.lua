@@ -21,7 +21,7 @@ local function Start(container: Instance)
 	function debugger.findInstanceFromEntity(id: number)
 		if not world:contains(id) then return end
 
-		for key in Components :: Dictionary<any> do
+		for key in Components :: Dictionary<Matter.Component<any>> do
 			if not instanceKeys[key] then continue end
 
 			local component = world:get(id, Components[key]); if component then
@@ -57,7 +57,7 @@ local function Start(container: Instance)
 	if RunService:IsClient() then
 		UserInputService.InputBegan:Connect(function(input)
 			if input.KeyCode == Enum.KeyCode.F4 then
-				Rodux.store:dispatch(function(store)
+				Rodux.store:dispatch(function(store: Rodux.Store)
                     debugger:toggle()
 
                     store:dispatch({
