@@ -26,7 +26,7 @@ local COMPONENTS = {
 local Components = {} :: Components
 Components.Templates = COMPONENT_TEMPLATES
 
-for _index, name in COMPONENTS do
+for _index, name: string in COMPONENTS do
 	Components[name] = Matter.component(name, COMPONENT_TEMPLATES[name] or {})
 end
 

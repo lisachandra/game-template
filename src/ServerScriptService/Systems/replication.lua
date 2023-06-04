@@ -14,9 +14,9 @@ local REPLICATED_COMPONENTS = {
 	"PlayerData",
 }
 
-local replicatedComponents = {}
+local replicatedComponents: { [Matter.Component<any>]: boolean } = {}
 
-for _index, name in REPLICATED_COMPONENTS do
+for _index, name: string in REPLICATED_COMPONENTS do
 	replicatedComponents[Components[name]] = true
 end
 
@@ -24,7 +24,7 @@ local function replication(world: Matter.World)
 	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
 		local payload = {}
 
-		for entityId, entityData in world do
+		for entityId: number, entityData: { [Matter.Component<any>]: table } in world :: any do
 			local entityPayload = {}
 			payload[tostring(entityId)] = entityPayload
 

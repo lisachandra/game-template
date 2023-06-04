@@ -1,33 +1,39 @@
 type None = typeof(newproxy(false))
 type Plasma = any
 
-type Component<T> = (self: any, ...any) -> ((data: T?) -> T)
-
-type ComponentInstance<T> = {
-    patch: (self: any, newData: T) -> T,
-}
-
-type QueryResult<T...> = typeof(setmetatable({} :: {
-    without: (self: any, ...any) -> QueryResult<T...>,
-    snapshot: (self: any) -> QueryResult<T...>,
-    next: (self: any) -> (number, T...),
+type Component<T> = (data: table?) -> ComponentInstance<T>
+type ComponentInstance<T> = typeof(setmetatable({} :: {
+    patch: (self: any, newData: table) -> T,
 }, {} :: {
-    __iter: (self: any) -> (() -> (number, T...)),
+    __index: T,
 }))
 
+type QueryResult<T...> = () -> (number, T...)
+
+--[[
+type QueryResult<T...> = typeof(setmetatable({}, {} :: {
+    __iter: (self: any) -> (() -> (number, T...)),
+    __index: {
+        without: (self: any, ...any) -> (() -> (number, T...)),
+        snapshot: (self: any) -> (() -> (number, T...)),
+        next: (self: any) -> (number, T...),
+    },
+}))
+]]
+
 type ChangeRecord<T> = {
-    old: T?,
-    new: T?,
+    old: ComponentInstance<T>?,
+    new: ComponentInstance<T>?,
 }
 
 type WorldGetOrRemove =
-	(<T>(self: any, id: number, Component<T>) -> T)
+	(<T>(self: any, id: number, Component<T>) -> ComponentInstance<T>)
 	& (<T, U>(
 		self: any,
 		id: number,
 		Component<T>,
 		Component<U>
-	) -> (T, ComponentInstance<U>))
+	) -> (ComponentInstance<T>, ComponentInstance<U>))
 	& (<T, U, V>(
 		self: any,
 		id: number,
@@ -35,21 +41,21 @@ type WorldGetOrRemove =
 		Component<U>,
 		Component<V>,
 		...any
-	) -> (T, ComponentInstance<U>, ComponentInstance<V>))
+	) -> (ComponentInstance<T>, ComponentInstance<U>, ComponentInstance<V>))
 
 type WorldQuery =
-	(<T>(self: any, Component<T>) -> QueryResult<T>)
+	(<T>(self: any, Component<T>) -> QueryResult<ComponentInstance<T>>)
 	& (<T, U>(
 		self: any,
 		Component<T>,
 		Component<U>
-	) -> QueryResult<T, ComponentInstance<U>>)
+	) -> QueryResult<ComponentInstance<T>, ComponentInstance<U>>)
 	& (<T, U, V>(
 		self: any,
 		Component<T>,
 		Component<U>,
 		Component<V>
-	) -> QueryResult<T, ComponentInstance<U>, ComponentInstance<V>>)
+	) -> QueryResult<ComponentInstance<T>, ComponentInstance<U>, ComponentInstance<V>>)
 	& (<T, U, V, W>(
 		self: any,
 		Component<T>,
@@ -58,7 +64,7 @@ type WorldQuery =
 		Component<W>,
 		...any
 	) -> QueryResult<
-		T,
+		ComponentInstance<T>,
 		ComponentInstance<U>,
 		ComponentInstance<V>,
 		ComponentInstance<W>
@@ -73,24 +79,23 @@ type SystemTable = {
 
 type System = SystemTable | (...any) -> ()
 
-type Events = { [string]: RBXScriptSignal }
-
-type World = typeof(setmetatable({} :: {
-    spawn: (self: any, ...any) -> number,
-    spawnAt: (self: any, id: number, ...any) -> number,
-    replace: (self: any, id: number, ...any) -> (),
-    despawn: (self: any, id: number) -> (),
-    clear: (self: any) -> (),
-    contains: (self: any, id: number) -> boolean,
-    insert: (self: any, id: number, ...any) -> (),
-    size: (self: any) -> number,
-    queryChanged: <T>(self: any, componentToTrack: Component<T>) -> (() -> (number, ChangeRecord<T>)),
-
-    get: WorldGetOrRemove,
-    query: WorldQuery,
-    remove: WorldGetOrRemove,
-}, {} :: {
-    __iter: (self: any) -> ((() -> (number, { [any]: any })), World),
+type World = typeof(setmetatable({}, {} :: {
+    --__iter: (self: any) -> (() -> (number, { [Component<any>]: table })),
+    __index: {
+        spawn: (self: any, ...any) -> number,
+        spawnAt: (self: any, id: number, ...any) -> number,
+        replace: (self: any, id: number, ...any) -> (),
+        despawn: (self: any, id: number) -> (),
+        clear: (self: any) -> (),
+        contains: (self: any, id: number) -> boolean,
+        insert: (self: any, id: number, ...any) -> (),
+        size: (self: any) -> number,
+        queryChanged: <T>(self: any, componentToTrack: Component<T>) -> (() -> (number, ChangeRecord<T>)),
+    
+        get: WorldGetOrRemove,
+        query: WorldQuery,
+        remove: WorldGetOrRemove,
+    },
 }))
 
 type Loop = {
@@ -98,7 +103,7 @@ type Loop = {
     scheduleSystem: (self: any, system: System) -> (),
     evictSystem: (self: any, system: System) -> (),
     replaceSystem: (self: any, old: System, new: System) -> (),
-    begin: (self: any, events: Events) -> Events,
+    begin: (self: any, events: Dictionary<RBXScriptSignal>) -> Dictionary<RBXScriptSignal>,
     addMiddleware: (self: any, middleware: (nextFn: () -> (), event: string) -> (() -> ())) -> (),
 }
 
@@ -127,9 +132,9 @@ export type Matter = {
 
     useEvent: (instance: Instance, event: string | RBXScriptSignal) -> (() -> (number, ...any)),
     useDeltaTime: () -> number,
-    useThrottle: (seconds: number, discriminator: string?) -> boolean,
+    useThrottle: (seconds: number, discriminator: any?) -> boolean,
     log: (...any) -> (),
-    useHookState: <T>(discriminator: string?, cleanup: ((storage: T) -> boolean?)?) -> T,
+    useHookState: <T>(discriminator: any?, cleanup: ((storage: T) -> boolean?)?) -> T,
 
     None: None,
 

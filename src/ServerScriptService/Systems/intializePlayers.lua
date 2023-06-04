@@ -38,19 +38,14 @@ local function initializePlayers(world: Matter.World)
     end
 
     for _index, player: Player in Players:GetPlayers() do
-        local id: number = player:GetAttribute("serverEntityId"); if not id then
-            PlayerAdded(world, player); continue
+        local id: number = player:GetAttribute("serverEntityId"); if id then
+            local profile = useProfile(player)
+            local PlayerData = profile and world:get(id, Components.PlayerData); if PlayerData then
+                PlayerData.Janitor:Add(profile, "Release", "Profile")
+            end
+        else
+            PlayerAdded(world, player)
         end
-
-        local profile = useProfile(player); if not profile then
-            continue
-        end
-
-        local PlayerData = world:get(id, Components.PlayerData); if PlayerData.Janitor:Get("Profile") then
-            continue
-        end
-
-        PlayerData.Janitor:Add(profile, "Release", "Profile")
     end
 end
 

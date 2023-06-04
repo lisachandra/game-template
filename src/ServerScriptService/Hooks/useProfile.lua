@@ -14,7 +14,7 @@ type storage = {
 
 local function useProfile(player: Player): ProfileService.Profile?
     local discriminator = "Player_" .. tostring(player.UserId)
-    local storage: storage = Matter.useHookState(discriminator, function()
+    local storage = Matter.useHookState(discriminator, function(_storage: storage)
         if player:FindFirstAncestorOfClass("DataModel") then
             return true
         end

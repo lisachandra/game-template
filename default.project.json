@@ -17,7 +17,9 @@
         "$path": "Packages",
         "$className": "Folder",
         "$ignoreUnknownInstances": true
-      }
+      },
+
+      "Remotes": { "$className": "Folder" }
     },
 
     "ServerScriptService": {
