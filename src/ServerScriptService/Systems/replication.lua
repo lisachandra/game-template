@@ -24,7 +24,7 @@ local function replication(world: Matter.World)
 	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
 		local payload = {}
 
-		for entityId: number, entityData: { [Matter.Component<any>]: table } in world :: any do
+		for entityId, entityData in world do
 			local entityPayload = {}
 			payload[tostring(entityId)] = entityPayload
 

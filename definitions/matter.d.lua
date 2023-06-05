@@ -80,7 +80,7 @@ type SystemTable = {
 type System = SystemTable | (...any) -> ()
 
 type World = typeof(setmetatable({}, {} :: {
-    --__iter: (self: any) -> (() -> (number, { [Component<any>]: table })),
+    __iter: (self: any) -> (() -> (number, { [Component<any>]: ComponentInstance<any> })),
     __index: {
         spawn: (self: any, ...any) -> number,
         spawnAt: (self: any, id: number, ...any) -> number,
