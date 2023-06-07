@@ -56,11 +56,11 @@ end
 
 store = Rodux.Store.new(reducer, initialState, middlewares, {
     reportReducerError = function(prevState, action, errorResult)
-        error(("Received error: %s\n\n%s"):format(errorResult.message, errorResult.thrownValue))
+        error(`Received error: {errorResult.message}\n\n{errorResult.thrownValue}`)
     end,
 
     reportUpdateError = function(prevState, currentState, lastActions, errorResult)
-        error(("Received error: %s\n\n%s"):format(errorResult.message, errorResult.thrownValue))
+        error(`Received error: {errorResult.message}\n\n{errorResult.thrownValue}`)
     end,
 })
 

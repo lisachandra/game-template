@@ -1,84 +1,67 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage.Shared
+local Remotes = ReplicatedStorage.Remotes
 
-local RemoteEvent = Remotes:WaitForChild("MatterRemote")
+local Matter = require(Shared.Matter)
 
-local Matter = require(Shared:WaitForChild("Matter"))
+local Components = require(Shared.Components)
 
-local Components = require(Shared:WaitForChild("Components"))
-local Rodux = require(Shared:WaitForChild("Rodux"))
+local MatterRemote: RemoteEvent = Remotes.MatterRemote
 
-type payload = Dictionary<Dictionary<{ data: table }>>
+local REPLICATED_COMPONENTS = {
+	"PlayerData",
+}
 
-local function Replicate(world: Matter.World, store: Rodux.Store)
-	local function debugPrint(...)
-		local state: Rodux.ClientState = store.getState(store :: any)
+local replicatedComponents: { [Matter.Component<any>]: boolean } = {}
 
-		if state.debugEnabled then
-			print("Replication>", ...)
+for _index, name: string in REPLICATED_COMPONENTS do
+	replicatedComponents[Components[name]] = true
+end
+
+local function replication(world: Matter.World)
+	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
+		local payload = {}
+
+		for entityId, entityData in world do
+			local entityPayload = {}
+			payload[`{entityId}`] = entityPayload
+
+			for component, componentData in entityData do
+				if replicatedComponents[component] then
+					entityPayload[`{component}`] = { data = componentData }
+				end
+			end
+		end
+
+		print("Sending initial payload to", player)
+		MatterRemote:FireClient(player, payload)
+	end
+
+	local changes = {}
+
+	for component in replicatedComponents do
+		for entityId, record in world:queryChanged(component) do
+			local key = `{entityId}`
+			local name = `{component}`
+
+			if changes[key] == nil then
+				changes[key] = {}
+			end
+
+			if world:contains(entityId) then
+				changes[key][name] = { data = record.new }
+			end
 		end
 	end
 
-	local entityIdMap: Dictionary<number> = {}
-
-	RemoteEvent.OnClientEvent:Connect(function(entities: payload)
-		for serverEntityId, componentMap in entities do
-			local clientEntityId = entityIdMap[serverEntityId]
-
-			if clientEntityId and next(componentMap) == nil then
-				world:despawn(clientEntityId)
-				entityIdMap[serverEntityId] = nil
-				debugPrint(string.format("Despawn %ds%s", clientEntityId, serverEntityId))
-				continue
-			end
-
-			local componentsToInsert: Array<Matter.ComponentInstance<any>> = {}
-			local componentsToRemove: Array<Matter.Component<any>> = {}
-
-			local insertNames: Array<string> = {}
-			local removeNames: Array<string> = {}
-
-			for name, container in componentMap do
-				if container.data then
-					table.insert(componentsToInsert, Components[name](container.data))
-					table.insert(insertNames, name)
-				else
-					table.insert(componentsToRemove, Components[name])
-					table.insert(removeNames, name)
-				end
-			end
-
-			if clientEntityId == nil then
-				clientEntityId = world:spawn(unpack(componentsToInsert))
-
-				entityIdMap[serverEntityId] = clientEntityId
-
-				debugPrint(
-					string.format("Spawn %ds%s with %s", clientEntityId, serverEntityId, table.concat(insertNames, ","))
-				)
-			else
-				if #componentsToInsert > 0 then
-					world:insert(clientEntityId, unpack(componentsToInsert))
-				end
-
-				if #componentsToRemove > 0 then
-					world:remove(clientEntityId, unpack(componentsToRemove))
-				end
-
-				debugPrint(
-					string.format(
-						"Modify %ds%s adding %s, removing %s",
-						clientEntityId,
-						serverEntityId,
-						if #insertNames > 0 then table.concat(insertNames, ", ") else "nothing",
-						if #removeNames > 0 then table.concat(removeNames, ", ") else "nothing"
-					)
-				)
-			end
-		end
-	end)
+	if next(changes) then
+		MatterRemote:FireAllClients(changes)
+	end
 end
 
-return Replicate
+return {
+	system = replication,
+	priority = math.huge,
+}
