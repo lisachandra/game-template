@@ -1,67 +1,79 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
 local Remotes = ReplicatedStorage.Remotes
-
-local Matter = require(Shared.Matter)
-
-local Components = require(Shared.Components)
+local Shared = ReplicatedStorage.Shared
 
 local MatterRemote: RemoteEvent = Remotes.MatterRemote
 
-local REPLICATED_COMPONENTS = {
-	"PlayerData",
-}
+local Matter = require(Shared.Matter)
+local Rodux = require(Shared.Rodux)
 
-local replicatedComponents: { [Matter.Component<any>]: boolean } = {}
+local Components = require(Shared.Components)
 
-for _index, name: string in REPLICATED_COMPONENTS do
-	replicatedComponents[Components[name]] = true
-end
+type payload = Dictionary<Dictionary<{ data: table }>>
 
-local function replication(world: Matter.World)
-	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
-		local payload = {}
+local function Replicate(world: Matter.World, store: Rodux.Store)
+	local function debugPrint(...)
+		local state: Rodux.ClientState = store.getState(store :: any)
 
-		for entityId, entityData in world do
-			local entityPayload = {}
-			payload[`{entityId}`] = entityPayload
+		if state.debugEnabled then
+			print("Replication>", ...)
+		end
+	end
 
-			for component, componentData in entityData do
-				if replicatedComponents[component] then
-					entityPayload[`{component}`] = { data = componentData }
+	local entityIdMap: Dictionary<number> = {}
+
+	MatterRemote.OnClientEvent:Connect(function(entities: payload)
+		for serverEntityId, componentMap in entities do
+			local clientEntityId = entityIdMap[serverEntityId]
+
+			if clientEntityId and next(componentMap) == nil then
+				world:despawn(clientEntityId)
+				entityIdMap[serverEntityId] = nil
+				debugPrint(`Despawn {clientEntityId}s{serverEntityId}`)
+
+				continue
+			end
+
+			local componentsToInsert: Array<Matter.ComponentInstance<any>> = {}
+			local componentsToRemove: Array<Matter.Component<any>> = {}
+
+			local insertNames: Array<string> = {}
+			local removeNames: Array<string> = {}
+
+			for name, container in componentMap do
+				if container.data then
+					table.insert(componentsToInsert, Components[name](container.data))
+					table.insert(insertNames, name)
+				else
+					table.insert(componentsToRemove, Components[name])
+					table.insert(removeNames, name)
 				end
 			end
-		end
 
-		print("Sending initial payload to", player)
-		MatterRemote:FireClient(player, payload)
-	end
+			if clientEntityId == nil then
+				clientEntityId = world:spawn(unpack(componentsToInsert))
 
-	local changes = {}
+				entityIdMap[serverEntityId] = clientEntityId
 
-	for component in replicatedComponents do
-		for entityId, record in world:queryChanged(component) do
-			local key = `{entityId}`
-			local name = `{component}`
+				debugPrint(`Spawn {clientEntityId}s{serverEntityId} with {table.concat(insertNames, ",")}`)
+			else
+				if #componentsToInsert > 0 then
+					world:insert(clientEntityId, unpack(componentsToInsert))
+				end
 
-			if changes[key] == nil then
-				changes[key] = {}
+				if #componentsToRemove > 0 then
+					world:remove(clientEntityId, unpack(componentsToRemove))
+				end
+
+				debugPrint(`Modify {clientEntityId}s{serverEntityId} adding {
+					if #insertNames > 0 then table.concat(insertNames, ", ") else "nothing"
+				}, removing {
+					if #removeNames > 0 then table.concat(removeNames, ", ") else "nothing"
+				}`)
 			end
-
-			if world:contains(entityId) then
-				changes[key][name] = { data = record.new }
-			end
 		end
-	end
-
-	if next(changes) then
-		MatterRemote:FireAllClients(changes)
-	end
+	end)
 end
 
-return {
-	system = replication,
-	priority = math.huge,
-}
+return Replicate
