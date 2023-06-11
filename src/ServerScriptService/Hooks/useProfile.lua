@@ -1,46 +1,47 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local Packages = ReplicatedStorage.Packages
 local Server = script.Parent.Parent
 
 local ProfileService = require(Server.ProfileService)
-local Matter = require(Shared.Matter)
+local Promise = require(Packages.Promise)
+
+local LoadProfileAsync = Promise.promisify(function(profile_key: string)
+    return ProfileService.Store:LoadProfileAsync(profile_key)
+end)
+
+local profiles: Dictionary<storage> = {}
 
 type storage = {
     profile: ProfileService.Profile?,
     loading: boolean?,
-    loaded: boolean?,
 }
 
 local function useProfile(player: Player): ProfileService.Profile?
     local discriminator = `Player_{player.UserId}`
-    local storage = Matter.useHookState(discriminator, function(_storage: storage)
-        if player:FindFirstAncestorOfClass("DataModel") then
-            return true
-        end
-
-        return
-    end)
+    local storage = profiles[discriminator] or {} :: any
 
     if not storage.loading then
         print("loading profile for player:", player.Name)
 
-        task.spawn(function()
-            storage.loading = true
-            storage.profile = ProfileService.Store:LoadProfileAsync(discriminator)
-            storage.loaded = true
+        storage.loading = true
+        profiles[discriminator] = storage
+        LoadProfileAsync(discriminator):andThen(function(profile: ProfileService.Profile?)
+            print("profile", (profile and "loaded for player:" or "failed to load for player:"), player.Name)
 
-            print("profile", (storage.profile and "loaded for player:" or "failed to load for player:"), player.Name)
+            storage.profile = profile; if profile then
+                print("setting up profile for player:", player.Name)
+
+                profile:AddUserId(player.UserId)
+                profile:Reconcile()
+                profile:ListenToRelease(function()
+                    print("profile released for:", player.Name)
+                    profiles[discriminator] = nil
+                end)
+            else
+                player:Kick("Profile failed to load, please rejoin")
+            end    
         end)
-    elseif storage.loaded then
-        if storage.profile then
-            print("setting up profile for player:", player.Name)
-
-            storage.profile:AddUserId(player.UserId)
-            storage.profile:Reconcile()
-        else
-            player:Kick("Profile failed to load, please rejoin")
-        end
     end
 
     return storage.profile

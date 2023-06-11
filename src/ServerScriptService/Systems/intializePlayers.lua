@@ -16,10 +16,17 @@ local Components = require(Shared.Components)
 local function PlayerAdded(world: Matter.World, player: Player)
     print("initalizing player:", player.Name)
 
-    player:SetAttribute("serverEntityId", world:spawn(Components.PlayerData({
-        Player = player,
-        Janitor = Janitor.new(),
-    })))
+    local janitor = Janitor.new()
+    local profile = useProfile(player); if profile then
+        janitor:Add(profile, "Release", "Profile")
+    end
+
+    player:SetAttribute("serverEntityId", world:spawn(
+        Components.PlayerData({
+            Player = player,
+            Janitor = janitor,
+        })
+    ))
 end
 
 local function initializePlayers(world: Matter.World)
@@ -33,20 +40,12 @@ local function initializePlayers(world: Matter.World)
         local id: number = player:GetAttribute("serverEntityId")
         local PlayerData = world:get(id, Components.PlayerData)
 
-        PlayerData.Janitor:Destroy()
         world:despawn(id)
-    end
-
-    for _index, player: Player in Players:GetPlayers() do
-        local id: number = player:GetAttribute("serverEntityId"); if id then
-            local profile = useProfile(player)
-            local PlayerData = profile and world:get(id, Components.PlayerData); if PlayerData then
-                PlayerData.Janitor:Add(profile, "Release", "Profile")
-            end
-        else
-            PlayerAdded(world, player)
-        end
+        PlayerData.Janitor:Destroy()
     end
 end
 
-return initializePlayers
+return {
+    system = initializePlayers,
+    priority = 1,
+}
