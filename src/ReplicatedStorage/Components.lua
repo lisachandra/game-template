@@ -14,7 +14,7 @@ type Components = {
 	PlayerData: Matter.Component<PlayerData>,
 }
 
-type PlayerData = {
+export type PlayerData = {
 	Player: Player,
 	Janitor: Janitor,
 }

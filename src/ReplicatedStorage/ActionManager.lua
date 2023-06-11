@@ -58,14 +58,11 @@ end
 
 if IS_CLIENT then
     UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessedEvent: boolean)
-        if gameProcessedEvent or
-            input.KeyCode == Enum.KeyCode.Unknown or
-            input.UserInputType == Enum.UserInputType.None
-        then return end
+        if gameProcessedEvent or input.UserInputType == Enum.UserInputType.None then return end
     
-        local inputValue = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode or
-            input.UserInputType ~= Enum.UserInputType.None and input.UserInputType
-    
+        local inputValue = if input.KeyCode ~= Enum.KeyCode.Unknown then input.KeyCode
+            elseif input.UserInputType ~= Enum.UserInputType.None then input.UserInputType else nil
+
         if inputValue then
             table.insert(inputs, inputValue)
     
@@ -81,13 +78,11 @@ if IS_CLIENT then
     end)
     
     UserInputService.InputEnded:Connect(function(input: InputObject, _gameProcessedEvent: boolean)
-        if input.KeyCode == Enum.KeyCode.Unknown or
-            input.UserInputType == Enum.UserInputType.None
-        then return end
+        if input.UserInputType == Enum.UserInputType.None then return end
     
-        local inputValue = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode or
-            input.UserInputType ~= Enum.UserInputType.None and input.UserInputType
-    
+        local inputValue = if input.KeyCode ~= Enum.KeyCode.Unknown then input.KeyCode
+            elseif input.UserInputType ~= Enum.UserInputType.None then input.UserInputType else nil
+
         local index = if inputValue then table.find(inputs, inputValue) else nil; if index then
             table.remove(inputs, index)
 

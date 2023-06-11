@@ -1,10 +1,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = script.Parent.Parent
 
 local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
 
-local Hooks = script.Parent.Parent.Hooks
+local Hooks = ServerScriptService.Hooks
 
 local Janitor = require(Packages.Janitor)
 local Matter = require(Shared.Matter)
@@ -17,16 +18,15 @@ local function PlayerAdded(world: Matter.World, player: Player)
     print("initalizing player:", player.Name)
 
     local janitor = Janitor.new()
-    local profile = useProfile(player); if profile then
-        janitor:Add(profile, "Release", "Profile")
-    end
-
-    player:SetAttribute("serverEntityId", world:spawn(
+    
+    local entityId = world:spawn(
         Components.PlayerData({
             Player = player,
             Janitor = janitor,
-        })
-    ))
+        } :: Components.PlayerData),
+    )
+
+    player:SetAttribute("serverEntityId", entityId)
 end
 
 local function initializePlayers(world: Matter.World)
@@ -42,6 +42,12 @@ local function initializePlayers(world: Matter.World)
 
         world:despawn(id)
         PlayerData.Janitor:Destroy()
+    end
+
+    for _index, PlayerData in world:query(Components.PlayerData) do
+        local profile = useProfile(PlayerData.Player); if profile and not PlayerData.Janitor:Get("Profile") then
+            PlayerData.Janitor:Add(profile, "Release", "Profile")
+        end
     end
 end
 
