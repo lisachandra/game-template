@@ -64,7 +64,7 @@ store = Rodux.Store.new(reducer, initialState, middlewares, {
     end,
 })
 
-store.changed.connect(store :: any, function(new, old)
+store.changed.connect(store.changed :: any, function(new, old)
     for key, update in updaters do
         if type(new[key]) == "table" and type(old[key]) == "table" then
             if not Sift.Dictionary.equals(new[key], old[key]) then
