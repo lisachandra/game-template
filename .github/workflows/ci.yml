@@ -51,7 +51,15 @@ jobs:
         run: |
           rojo sourcemap default.project.json --output sourcemap.json
           wally-package-types --sourcemap sourcemap.json Packages/
-          luau-lsp analyze --no-strict-dm-types --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
+          luau-lsp analyze --no-strict-dm-types src/ \
+            --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
+            --flag:LuauTypeInferIterationLimit=0 \
+            --flag:LuauCheckRecursionLimit=0 \
+            --flag:LuauTypeInferRecursionLimit=0 \
+            --flag:LuauTarjanChildLimit=0 \
+            --flag:LuauTypeInferTypePackLoopLimit=0 \
+            --flag:LuauVisitRecursionLimit=0 \
+            --flag:LuauParseDeclareClassIndexer=true \
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
             --definitions=definitions/roact.d.lua \
