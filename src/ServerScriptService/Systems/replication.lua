@@ -10,31 +10,50 @@ local Sift = require(Packages.Sift)
 
 local Components = require(Shared.Components)
 
-local MatterRemote: RemoteEvent = Remotes.MatterRemote
+local SERVER_TIME_REPLICATE_INTERVAL = 0.1
 
 local REPLICATED_COMPONENTS = {
 	"PlayerData",
 }
 
-local LOCAL_REPLICATED_COMPONENTS = {}
 
-local replicatedComponents: { [Matter.Component<any>]: boolean } = {}
-local localReplicatedComponents: { [Matter.Component<any>]: boolean } = {}
+local LOCAL_REPLICATED_COMPONENTS = {
+	"Server",
+}
 
-for _index, name: string in ipairs(REPLICATED_COMPONENTS) do
-	replicatedComponents[Components[name]] = true
+local EXCLUDED = {
+	PlayerData = {
+		"Janitor",
+	},
+}
+
+local replicatedComponents: Array<Matter.Component<any>> = {}
+local localReplicatedComponents: Array<Matter.Component<any>> = {}
+
+for _index, name in ipairs(REPLICATED_COMPONENTS) do
+	table.insert(replicatedComponents, Components[name])
 end
 
-for _index, name: string in ipairs(LOCAL_REPLICATED_COMPONENTS) do
-	localReplicatedComponents[Components[name]] = true
+for _index, name in ipairs(LOCAL_REPLICATED_COMPONENTS) do
+	table.insert(localReplicatedComponents, Components[name])
 end
 
-local mergedReplicatedComponents = Sift.Dictionary.merge(replicatedComponents, localReplicatedComponents) 
+local mergedReplicatedComponents = Sift.Array.push(replicatedComponents, table.unpack(localReplicatedComponents))
 
 type payload = Dictionary<Dictionary<{ data: table }>>
 
 local function replication(world: Matter.World)
-	for _index, player: Player in Matter.useEvent(Players, "PlayerAdded") do
+	local replicateServerTime = Matter.useThrottle(SERVER_TIME_REPLICATE_INTERVAL)
+
+	for entityId, PlayerData, Server in world:query(Components.PlayerData, Components.Server) do
+		if replicateServerTime then
+			world:insert(entityId, Server:patch({
+				Time = os.clock(),
+			} :: Components.Server))
+		end
+	end
+
+	for _index, Player: Player in Matter.useEvent(Players, "PlayerAdded") do
 		local payload: payload = {}
 
 		for entityId, entityData in world do
@@ -42,25 +61,30 @@ local function replication(world: Matter.World)
 			payload[`{entityId}`] = entityPayload
 
 			for component, componentData in entityData do
-				if replicatedComponents[component] then
-					entityPayload[`{component}`] = { data = componentData }
+				if table.find(replicatedComponents, component) then
+					local name = `{component}`
+					local excluded = {}; if EXCLUDED[name] then
+						for _index, key in EXCLUDED[name] do
+							excluded[key] = Matter.None
+						end
+					end
+
+					entityPayload[name] = { data = componentData:patch(excluded) }
 				end
 			end
 		end
 
-		print("Sending initial payload to", player)
-		MatterRemote:FireClient(player, payload)
+		print("Sending initial payload to", Player)
+		Remotes.MatterRemote:FireClient(Player, payload)
 	end
 
 	local payloads: Dictionary<payload> = {}
 
-	for component in mergedReplicatedComponents do
-		local isLocalComponent = table.find(component, localReplicatedComponents) and true or false
+	for _index, component in mergedReplicatedComponents do
+		local isLocalComponent = table.find(localReplicatedComponents, component)
 
 		for entityId, record in world:queryChanged(component) do
-			for _index, PlayerData in world:query(Components.PlayerData) do
-				local playerEntityId = PlayerData.Player:GetAttribute("serverEntityId")
-
+			for playerEntityId, PlayerData in world:query(Components.PlayerData) do
 				if isLocalComponent and entityId ~= playerEntityId then continue end
 
 				local userId = `{PlayerData.Player.UserId}`
@@ -74,7 +98,13 @@ local function replication(world: Matter.World)
 				end
 
 				if world:contains(entityId) then
-					payload[key][name] = { data = record.new :: any }
+					local excluded = {}; if EXCLUDED[name] then
+						for _index, key in EXCLUDED[name] do
+							excluded[key] = Matter.None
+						end
+					end
+
+					payload[key][name] = { data = record.new and record.new:patch(excluded) :: any }
 				end
 
 				payloads[userId] = payload
@@ -84,9 +114,9 @@ local function replication(world: Matter.World)
 
 	if next(payloads) then
 		for userId, payload in payloads do
-			local player = Players:GetPlayerByUserId(tonumber(userId))
+			local Player = Players:GetPlayerByUserId(tonumber(userId))
 
-			MatterRemote:FireClient(player, payload)
+			Remotes.MatterRemote:FireClient(Player, payload)
 		end
 	end
 end
