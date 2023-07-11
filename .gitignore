@@ -6,7 +6,6 @@ definitions/globalTypes.d.lua
 aftman.toml
 sourcemap.json
 wally.lock
-Packages/*
 
 ### Lua ###
 # Compiled Lua sources

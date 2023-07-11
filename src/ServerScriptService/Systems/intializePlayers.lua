@@ -23,7 +23,7 @@ local function PlayerAdded(world: Matter.World, player: Player)
         Components.PlayerData({
             Player = player,
             Janitor = janitor,
-        } :: Components.PlayerData),
+        } :: Components.PlayerData)
     )
 
     player:SetAttribute("serverEntityId", entityId)
