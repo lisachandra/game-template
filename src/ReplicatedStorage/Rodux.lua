@@ -1,8 +1,11 @@
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = script.Parent.Parent
 
-local Packages = script.Parent.Parent.Packages
+local Shared = ReplicatedStorage.Shared
+local Packages = ReplicatedStorage.Packages
 
 local RoactHooks = require(Packages.RoactHooks)
+local Matter = require(Shared.Matter)
 local Rodux = require(Packages.Rodux)
 local Sift = require(Packages.Sift)
 
@@ -20,10 +23,25 @@ type creator = (...any) -> action
 type reducer = (key: string, action: action) -> any
 type action = table & { type: string }
 
-export type ClientState = { debugEnabled: boolean }
+export type ClientState = {
+    debugEnabled: boolean,
+    world: Matter.World,
+    serverTime: number,
+}
+
 export type ServerState = {}
 
 export type Store = typeof(Rodux.Store.new(nil :: any, nil :: any, nil :: any, nil :: any))
+
+local function createReducer(key: string)
+    return function(value: any?, action: action)
+        if action.type == key then
+            return action.value
+        end
+
+        return value
+    end
+end
 
 local function reducer(state: Dictionary<any>, action: action)
     local newState = {}; for key, reducer in reducers do
@@ -47,6 +65,14 @@ if RunService:IsClient() then
     creators = {}
     reducers = {}
     middlewares = { Rodux.thunkMiddleware :: any }
+
+    for _index, key in {
+        "world",
+        "debugEnabled",
+        "serverTime",
+    } do
+        reducers[key] = createReducer(key)
+    end
 else
     initialState = {} :: ServerState
     creators = {}
@@ -77,7 +103,7 @@ store.changed.connect(store.changed :: any, function(new, old)
 end)
 
 return {
-    store = store,
+    store = store :: Store,
     useState = useState,
     creators = creators,
 }

@@ -12,12 +12,34 @@ export type RoactFragment = typeof(newproxy(false))
 export type RoactElementFn<P> = (props: P) -> RoactElement
 
 export type RoactBinding<T> = {
-    getValue: (self: RoactBinding<T>) -> T,
-    map: (self: RoactBinding<T>, mappingFunction: (value: T) -> any) -> RoactBinding<T>,
+    getValue: (self: any) -> T,
+    map: (self: any, mappingFunction: (value: T) -> any) -> RoactBinding<T>,
 }
 
 export type RoactRef<T> = {
-    getValue: (self: RoactRef<T>) -> T,
+    getValue: (self: any) -> T,
+}
+
+export type RoactContext<T> = {
+    Provider: RoactElementFn<{ value: T }>,
+    Consumer: RoactElementFn<{ render: (value: T) -> RoactElement }>,
+}
+
+export type RoactComponent = {
+    defaultProps: table,
+    
+    validateProps: (self: any, props: table) -> (false, string) | true,
+    init: (self: any, initialProps: table) -> (),
+    getDerivedStateFromProps: (nextProps: table, lastState: table) -> table,
+    shouldUpdate: (self: any, nextProps: table, nextState: table) -> boolean,
+    willUpdate: (self: any, nextProps: table, nextState: table) -> (),
+    render: (self: any) -> RoactElement,
+    didUpdate: (self: any, previousProps: table, previousState: table) -> (),
+    didMount: (self: any) -> (),
+    willUnmount: (self: any) -> (),
+    
+    setState: (self: any, state: table | (prevState: table, props: table) -> table) -> (),
+    getElementTraceback: (self: any) -> string?,
 }
 
 export type Roact = {
@@ -27,6 +49,7 @@ export type Roact = {
         children: { [string | number]: RoactElement }?
     ) -> RoactElement,
     createFragment: (elements: { [string | number]: RoactElement }) -> RoactFragment,
+    createContext: <T>(defaultValue: T) -> RoactContext<T>,
     mount: (element: RoactElement, parent: Instance?, key: string?) -> RoactTree,
     unmount: (tree: RoactTree) -> (),
     createBinding: <T>(initialValue: T) -> (RoactBinding<T>, (newValue: T) -> ()),
@@ -37,8 +60,12 @@ export type Roact = {
         typeChecks: boolean?,
         internalTypeChecks: boolean?,
         elementTracing: boolean?,
-        propValidation: boolean?
+        propValidation: boolean?,
     }) -> (),
+
+    Component: { extend: (componentName: string) -> RoactComponent },
+    PureComponent: { extend: (componentName: string) -> RoactComponent },
+    Portal: RoactElementFn<{ target: Instance }>,
 
     Children: Children,
     Ref: Ref,
@@ -48,6 +75,4 @@ export type Roact = {
     Type: {
         of: (value: any) -> Type,
     },
-
-    Portal: RoactElementFn<{ target: Instance }>,
 }

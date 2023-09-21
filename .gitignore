@@ -6,6 +6,7 @@ definitions/globalTypes.d.lua
 aftman.toml
 sourcemap.json
 wally.lock
+.VSCodeCounter
 
 ### Lua ###
 # Compiled Lua sources

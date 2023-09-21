@@ -2,9 +2,10 @@
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = script.Parent.Parent
 
-local Packages = script.Parent.Parent.Packages
-local Shared = script.Parent
+local Packages = ReplicatedStorage.Packages
+local Shared = ReplicatedStorage.Shared
 
 local Matter = require(Shared.Matter)
 local Plasma = require(Packages.Plasma)
@@ -12,28 +13,24 @@ local Plasma = require(Packages.Plasma)
 local Rodux = require(Shared.Rodux)
 local Components = require(Shared.Components)
 
-local instanceKeys = { PlayerData = "Player" }
-
 local function Start(container: Instance)
 	local world = Matter.World.new()
 	local debugger = Matter.Debugger.new(Plasma)
 
-	function debugger.findInstanceFromEntity(id: number)
-		if not world:contains(id) then return end
+	function debugger.findInstanceFromEntity(entityId: number)
+		if not world:contains(entityId) then return end
 
-		for key: string, component: Matter.Component<any> in Components do
-			if not instanceKeys[key] then continue end
-
-			local componentInstance = world:get(id, component); if componentInstance then
-				return componentInstance[instanceKeys[key]]
+		local Tag = world:get(entityId, Components.Tag); if Tag.Value == "Player" then
+			local PlayerData = world:get(entityId, Components.PlayerData); if PlayerData then
+				return PlayerData.Player.Character
 			end
 		end
 
 		return
 	end
 
-	function debugger.authorize(player: Player)
-		local role = player:GetRoleInGroup(4272924); if role == "Developers" or role == "Owner" then
+	function debugger.authorize(Player: Player)
+		local role = Player:GetRoleInGroup(4272924); if role == "Developers" or role == "Owner" then
 			return true
 		end
 
@@ -42,28 +39,35 @@ local function Start(container: Instance)
 
 	local loop = Matter.Loop.new(world, Rodux.store, debugger:getWidgets())
 
-    local systems = {}; for _i, system in container:GetChildren() do
+    local systems = {}; for _index, system in container:GetChildren() do
         table.insert(systems, require(system))
     end
 
-	loop:scheduleSystems(systems)
-	debugger:autoInitialize(loop)
+	Rodux.store:dispatch(function(store: Rodux.Store)
+		store:dispatch({
+			type = "world",
+			value = world,
+		})
 
-	loop:begin({
-		default = RunService.Heartbeat,
-		Stepped = RunService.Stepped,
-	})
+		loop:scheduleSystems(systems)
+		debugger:autoInitialize(loop)
+
+		loop:begin({
+			default = RunService.Heartbeat,
+			Stepped = RunService.Stepped,
+		})
+	end)
 
 	if RunService:IsClient() then
 		UserInputService.InputBegan:Connect(function(input)
 			if input.KeyCode == Enum.KeyCode.F4 then
 				Rodux.store:dispatch(function(store: Rodux.Store)
-                    debugger:toggle()
-
                     store:dispatch({
-                        type = "debugEnabled",
-                        value = debugger.enabled,
+						type = "debugEnabled",
+						value = not debugger.enabled,
                     })
+					
+					debugger:toggle()
                 end)
 			end
 		end)

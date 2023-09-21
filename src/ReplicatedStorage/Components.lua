@@ -4,11 +4,7 @@ local Shared = script.Parent
 local Janitor = require(Packages.Janitor)
 local Matter = require(Shared.Matter)
 
-local COMPONENT_TEMPLATES = table.freeze({
-	Server = {
-		Time = 0,
-	} :: Server,
-})
+local COMPONENT_TEMPLATES = table.freeze({})
 
 type Janitor = Janitor.Janitor
 
@@ -16,21 +12,24 @@ type Components = {
 	Templates: typeof(COMPONENT_TEMPLATES),
 
 	PlayerData: Matter.Component<PlayerData>,
-	Server: Matter.Component<Server>,
+	Tag: Matter.Component<Tag>,
 }
 
-export type Server = {
-	Time: number,
-}
+export type Tags = "Player"
 
 export type PlayerData = {
 	Player: Player,
 	Janitor: Janitor,
 }
 
+export type Tag = {
+	Value: Tags,
+	Component: string,
+}
+
 local COMPONENTS = {
 	"PlayerData",
-	"Server"
+	"Tag",
 }
 
 local Components = {} :: Components

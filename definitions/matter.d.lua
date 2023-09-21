@@ -130,7 +130,7 @@ export type Matter = {
 
     component: <T>(name: string?, data: T?) -> Component<T>,
 
-    useEvent: (instance: Instance, event: string | RBXScriptSignal) -> (() -> (number, ...any)),
+    useEvent: (instance: any, event: any) -> (() -> (number, ...any)),
     useDeltaTime: () -> number,
     useThrottle: (seconds: number, discriminator: any?) -> boolean,
     log: (...any) -> (),

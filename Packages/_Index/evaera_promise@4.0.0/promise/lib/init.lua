@@ -1,4 +1,3 @@
-
 --!nocheck
 --[[
 	An implementation of Promises similar to Promise/A+.
@@ -2067,4 +2066,4 @@ function Promise.onUnhandledRejection(callback)
 	end
 end
 
-return Promise :: any
+return Promise

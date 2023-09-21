@@ -1,0 +1,30 @@
+{
+  "name": "roact-router",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Roact": {
+        "$path": "Roact"
+      },
+      "RoactRouter": {
+        "$path": "../default.project.json"
+      },
+      "TestEZ": {
+        "$path": "TestEZ"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "demo": {
+          "$path": "demo.client.lua"
+        },
+        "runTests": {
+          "$path": "runTests.client.lua"
+        }
+      }
+    }
+  }
+}

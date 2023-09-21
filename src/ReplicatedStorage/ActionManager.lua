@@ -12,11 +12,10 @@ local IS_CLIENT = RunService:IsClient()
 
 local Array = Sift.Array
 
-local inputs: Array<Control> = {}
-
 local ActionManager = {}
 ActionManager.__index = ActionManager
 
+ActionManager.inputs = {} :: Array<Control>
 ActionManager.pressed = {} :: Array<string>
 ActionManager._actions = {} :: Dictionary<Controls>
 ActionManager._actionPressed = GoodSignal.new() :: GoodSignal.Signal<string, boolean>
@@ -26,7 +25,7 @@ local function getControls()
 
     for guid, controls in ActionManager._actions do
         if Array.every(controls, function(enum)
-            return Array.includes(inputs, enum)
+            return Array.includes(ActionManager.inputs, enum)
         end) then
             table.insert(controlsPressed, guid)
         end
@@ -57,14 +56,14 @@ function ActionManager:Connect(callback: (began: boolean) -> ())
 end
 
 if IS_CLIENT then
-    UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessedEvent: boolean)
-        if gameProcessedEvent or input.UserInputType == Enum.UserInputType.None then return end
+    UserInputService.InputBegan:Connect(function(input: InputObject, _gameProcessedEvent)
+        if input.UserInputType == Enum.UserInputType.None then return end
     
         local inputValue = if input.KeyCode ~= Enum.KeyCode.Unknown then input.KeyCode
             elseif input.UserInputType ~= Enum.UserInputType.None then input.UserInputType else nil
 
         if inputValue then
-            table.insert(inputs, inputValue)
+            table.insert(ActionManager.inputs, inputValue)
     
             local controlsPressed = getControls(); if #controlsPressed > 0 then
                 controlsPressed = Array.removeValues(controlsPressed, table.unpack(ActionManager.pressed))
@@ -77,14 +76,14 @@ if IS_CLIENT then
         end
     end)
     
-    UserInputService.InputEnded:Connect(function(input: InputObject, _gameProcessedEvent: boolean)
+    UserInputService.InputEnded:Connect(function(input: InputObject, _gameProcessedEvent)
         if input.UserInputType == Enum.UserInputType.None then return end
     
         local inputValue = if input.KeyCode ~= Enum.KeyCode.Unknown then input.KeyCode
             elseif input.UserInputType ~= Enum.UserInputType.None then input.UserInputType else nil
 
-        local index = if inputValue then table.find(inputs, inputValue) else nil; if index then
-            table.remove(inputs, index)
+        local index = if inputValue then table.find(ActionManager.inputs, inputValue) else nil; if index then
+            table.remove(ActionManager.inputs, index)
 
             local controlsPressed = getControls(); if #ActionManager.pressed > 0 then
                 local difference = Array.difference(ActionManager.pressed, controlsPressed)

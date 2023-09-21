@@ -1,31 +1,32 @@
-local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
-local Remotes = ReplicatedStorage.Remotes
 local Packages = ReplicatedStorage.Packages
 
+local BridgeNet2 = require(Packages.BridgeNet2)
 local Matter = require(Shared.Matter)
 local Sift = require(Packages.Sift)
 
 local Components = require(Shared.Components)
-
-local SERVER_TIME_REPLICATE_INTERVAL = 0.1
+local Bridges = require(Shared.Bridges)
+local Bridges: Bridges.Bridges<Bridges.ServerBridge> = Bridges
 
 local REPLICATED_COMPONENTS = {
 	"PlayerData",
+	"Tag",
 }
 
-
-local LOCAL_REPLICATED_COMPONENTS = {
-	"Server",
-}
+local LOCAL_REPLICATED_COMPONENTS = {}
 
 local EXCLUDED = {
 	PlayerData = {
 		"Janitor",
 	},
 }
+
+local NONE = HttpService:GenerateGUID(false)
+local TIME_REPLICATE = 0.5
 
 local replicatedComponents: Array<Matter.Component<any>> = {}
 local localReplicatedComponents: Array<Matter.Component<any>> = {}
@@ -39,84 +40,121 @@ for _index, name in ipairs(LOCAL_REPLICATED_COMPONENTS) do
 end
 
 local mergedReplicatedComponents = Sift.Array.push(replicatedComponents, table.unpack(localReplicatedComponents))
+local hasReceived: Array<Player> = {}
 
-type payload = Dictionary<Dictionary<{ data: table }>>
+type payload = Dictionary<Dictionary<{ data: table? }>>
 
-local function replication(world: Matter.World)
-	local replicateServerTime = Matter.useThrottle(SERVER_TIME_REPLICATE_INTERVAL)
-
-	for entityId, PlayerData, Server in world:query(Components.PlayerData, Components.Server) do
-		if replicateServerTime then
-			world:insert(entityId, Server:patch({
-				Time = os.clock(),
-			} :: Components.Server))
+local function dictionaryDifference(old, new, none): table
+	local difference = {}; for key, value in old do
+		if value ~= new[key] then
+			difference[key] = if new[key] == nil then none else new[key]
 		end
 	end
 
-	for _index, Player: Player in Matter.useEvent(Players, "PlayerAdded") do
-		local payload: payload = {}
+	return difference
+end
 
-		for entityId, entityData in world do
-			local entityPayload = {}
-			payload[`{entityId}`] = entityPayload
+local function replication(world: Matter.World)
+	local payloads: Map<Player, payload> = {}
+	local initialized: Array<Player> = {}
 
-			for component, componentData in entityData do
-				if table.find(replicatedComponents, component) then
-					local name = `{component}`
+	if Matter.useThrottle(TIME_REPLICATE) then
+		Bridges.Time:Fire(BridgeNet2.AllPlayers(), { os.clock() } :: Array<any>)
+	end
+
+	for entityId, PlayerData in world:query(Components.PlayerData) do
+		if not table.find(hasReceived, PlayerData.Player) then
+			Bridges.MatterReplication:Fire(PlayerData.Player, { {}, NONE })
+
+			table.insert(hasReceived, PlayerData.Player)
+			table.insert(initialized, PlayerData.Player)
+
+			PlayerData.Janitor:Add(function()
+				local index = table.find(hasReceived, PlayerData.Player); if index then
+					table.remove(hasReceived, index)
+				end
+			end)
+			
+			for _index, component in mergedReplicatedComponents do
+				local isLocalComponent = table.find(localReplicatedComponents, component)
+				local name = `{component}`
+
+				for playerEntityId, _PlayerData in world:query(Components.PlayerData) do
+					if isLocalComponent and entityId ~= playerEntityId then continue end
+
+					local key = `{playerEntityId}`
+					local payload = payloads[PlayerData.Player] or {} :: payload
+					local component = world:get(playerEntityId, component)
+
+					if payload[key] == nil then
+						payload[key] = {}
+					end
+
 					local excluded = {}; if EXCLUDED[name] then
 						for _index, key in EXCLUDED[name] do
 							excluded[key] = Matter.None
 						end
 					end
 
-					entityPayload[name] = { data = componentData:patch(excluded) }
+					payload[key][name] = { data = component:patch(excluded) }
+					payloads[PlayerData.Player] = payload
 				end
 			end
 		end
-
-		print("Sending initial payload to", Player)
-		Remotes.MatterRemote:FireClient(Player, payload)
 	end
-
-	local payloads: Dictionary<payload> = {}
 
 	for _index, component in mergedReplicatedComponents do
 		local isLocalComponent = table.find(localReplicatedComponents, component)
+		local name = `{component}`
 
 		for entityId, record in world:queryChanged(component) do
+			if world:contains(entityId) then
+				local Tag = world:get(entityId, Components.Tag)
+				local Component = Tag and world:get(entityId, Components[Tag.Component])
+
+				if not Component then
+					continue
+				end
+			end
+
 			for playerEntityId, PlayerData in world:query(Components.PlayerData) do
-				if isLocalComponent and entityId ~= playerEntityId then continue end
+				if table.find(initialized, PlayerData.Player) or
+					(isLocalComponent and entityId ~= playerEntityId)
+				then continue end
 
-				local userId = `{PlayerData.Player.UserId}`
-				local payload = payloads[userId] or {} :: payload
-
+				local payload = payloads[PlayerData.Player] or {} :: payload
 				local key = `{entityId}`
-				local name = `{component}`
 
 				if payload[key] == nil then
 					payload[key] = {}
 				end
 
-				if world:contains(entityId) then
+				if record.new then
 					local excluded = {}; if EXCLUDED[name] then
 						for _index, key in EXCLUDED[name] do
 							excluded[key] = Matter.None
 						end
 					end
 
-					payload[key][name] = { data = record.new and record.new:patch(excluded) :: any }
+					payload[key][name] = if record.old then {
+						data = dictionaryDifference(record.old, record.new:patch(excluded), NONE),
+					} else { data = record.new:patch(excluded) }
+				else
+					payload[key][name] = {}
 				end
 
-				payloads[userId] = payload
+				payloads[PlayerData.Player] = payload
 			end
 		end
 	end
 
 	if next(payloads) then
-		for userId, payload in payloads do
-			local Player = Players:GetPlayerByUserId(tonumber(userId))
+		for Player, payload in payloads do
+			if table.find(initialized, Player) then
+				print("sending initial payload to:", Player, payload)
+			end
 
-			Remotes.MatterRemote:FireClient(Player, payload)
+			Bridges.MatterReplication:Fire(Player, { payload })
 		end
 	end
 end

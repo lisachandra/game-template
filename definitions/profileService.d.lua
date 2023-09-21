@@ -1,5 +1,5 @@
 type LockedOrActiveUpdateFn = (self: any, update_id: number, update_data: table) -> ()
-type NextQuery<T = table> = (self: any) -> Profile<T> 
+type NextQuery<T> = (self: any) -> Profile<T> 
 type UnrealeasedHandler = "ForceLoad" | "Steal"
 type Date = (DateTime | number)
 
@@ -25,7 +25,7 @@ type UpdateHandlerGlobalUpdates = GlobalUpdates & {
     ClearActiveUpdate: ClearOrLockUpdate,
 }
 
-type ProfileVersionQuery<T = table> = {
+type ProfileVersionQuery<T> = {
     Next: NextQuery<T>,
     NextAsync: NextQuery<T>,
 }
@@ -38,7 +38,7 @@ type ProfileMetaData = {
     MetaTagsLatest: table,
 }
 
-type Profile<T = table> = {
+type Profile<T> = {
     Data: T,
     UserIds: Array<number>,
     MetaData: ProfileMetaData,
@@ -62,7 +62,7 @@ type Profile<T = table> = {
     OverwriteAsync: (self: any) -> (),
 }
 
-type ProfileStore<T = table> = {
+type ProfileStore<T> = {
     LoadProfileAsync: (
         self: any,
         profile_key: string,
@@ -91,5 +91,5 @@ export type ProfileService = {
     GetProfileStore: <T>(
         profile_store_key: string | { Name: string?, Scope: string? },
         profile_template: T
-    ) -> ProfileStore<T> & { Mock: ProfileStore<T> },
+    ) -> ProfileStore<T>,
 }

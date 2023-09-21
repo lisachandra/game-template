@@ -1,4 +1,4 @@
-local REQUIRED_MODULE = require(script.Parent._Index["chriscerie_roact-spring@1.1.5"]["roact-spring"])
+local REQUIRED_MODULE = require(script.Parent._Index["chriscerie_roact-spring@1.1.6"]["roact-spring"])
 export type AnimatableType = REQUIRED_MODULE.AnimatableType 
 export type AnimationStyle = REQUIRED_MODULE.AnimationStyle 
 export type UseSpringsApi<T> = REQUIRED_MODULE.UseSpringsApi<T>

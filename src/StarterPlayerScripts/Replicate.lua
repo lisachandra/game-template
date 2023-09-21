@@ -1,16 +1,17 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Remotes = ReplicatedStorage.Remotes
 local Shared = ReplicatedStorage.Shared
-
-local MatterRemote: RemoteEvent = Remotes.MatterRemote
 
 local Matter = require(Shared.Matter)
 local Rodux = require(Shared.Rodux)
 
 local Components = require(Shared.Components)
+local Bridges = require(Shared.Bridges)
+local Bridges: Bridges.Bridges<Bridges.ClientBridge> = Bridges
 
-type payload = Dictionary<Dictionary<{ data: table }>>
+local NONE: string
+
+type payload = Dictionary<Dictionary<{ data: table? }>>
 
 local function Replicate(world: Matter.World, store: Rodux.Store)
 	local function debugPrint(...)
@@ -23,7 +24,14 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 
 	local entityIdMap: Dictionary<number> = {}
 
-	MatterRemote.OnClientEvent:Connect(function(entities: payload)
+	Bridges.MatterReplication:Connect(function(args: any)
+		local entities: payload, none: string? = table.unpack(args)
+
+		if none then
+			debugPrint("None received:", none)
+			NONE = none; return
+		end
+
 		for serverEntityId, componentMap in entities do
 			local clientEntityId = entityIdMap[serverEntityId]
 
@@ -43,7 +51,21 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 
 			for name, container in componentMap do
 				if container.data then
-					table.insert(componentsToInsert, Components[name](container.data))
+					local toInsert; if clientEntityId then
+						local Component = world:get(clientEntityId, Components[name]); if Component then
+							for key, value in container.data do
+								if value == NONE then
+									container.data[key] = Matter.None
+								end
+							end
+
+							toInsert = Component:patch(container.data)
+						else
+							warn(`Tried to patch {name} when it doesn't exist!`); continue
+						end
+					end
+
+					table.insert(componentsToInsert, toInsert or Components[name](container.data))
 					table.insert(insertNames, name)
 				else
 					table.insert(componentsToRemove, Components[name])
@@ -56,7 +78,7 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 
 				entityIdMap[serverEntityId] = clientEntityId
 
-				debugPrint(`Spawn {clientEntityId}s{serverEntityId} with {table.concat(insertNames, ",")}`)
+				debugPrint(`Spawn {clientEntityId}s{serverEntityId} with {table.concat(insertNames, ", ")}`)
 			else
 				if #componentsToInsert > 0 then
 					world:insert(clientEntityId, unpack(componentsToInsert))
