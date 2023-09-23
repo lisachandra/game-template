@@ -12,7 +12,8 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Packages = ReplicatedStorage:WaitForChild("Packages")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local Roact: Roact = require(Packages.Roact) :: any
+local React = require(Packages.React)
+local ReactRoblox = require(Packages.ReactRoblox)
 
 local Start = require(Shared.Start)
 local Bridges = require(Shared.Bridges)
@@ -45,8 +46,12 @@ while true do
     task.wait(1)
 end
 
---[[Roact.mount(Roact.createElement(require(StarterPlayerScripts.App), {
-    entityId = LocalPlayer:GetAttribute("clientEntityId"),
-    world = world,
-    store = store,
-}), PlayerGui, "App")]]
+ReactRoblox.createRoot(Instance.new("Folder"))
+    :render(ReactRoblox.createPortal(React.createElement(
+        require(StarterPlayerScripts.App), {
+            world = world,
+            store = store,
+            entityId = LocalPlayer:GetAttribute("clientEntityId"),
+            scale = nil :: any,
+        }
+    ), PlayerGui))

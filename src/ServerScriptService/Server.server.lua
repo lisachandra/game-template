@@ -6,5 +6,5 @@ local Shared = ReplicatedStorage.Shared
 local Start = require(Shared.Start)
 
 require(Shared.Bridges)
-require(Packages.RoactTemplate)
+require(Packages.ReactTemplate)
 Start(script.Parent.Systems)

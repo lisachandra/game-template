@@ -4,8 +4,8 @@ local ReplicatedStorage = script.Parent.Parent
 local Shared = ReplicatedStorage.Shared
 local Packages = ReplicatedStorage.Packages
 
-local RoactHooks = require(Packages.RoactHooks)
 local Matter = require(Shared.Matter)
+local React = require(Packages.React)
 local Rodux = require(Packages.Rodux)
 local Sift = require(Packages.Sift)
 
@@ -51,9 +51,9 @@ local function reducer(state: Dictionary<any>, action: action)
     return newState
 end
 
-local function useState(hooks: RoactHooks.Hooks, key: string)
+local function useState(key: string)
     local state = store:getState()
-    local value, update = hooks.useState(state[key])
+    local value, update = React.useState(state[key])
 
     updaters[key] = update
 

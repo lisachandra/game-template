@@ -20,15 +20,18 @@ jobs:
           version: "^1.0.1"
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: wally-package-types
+          version: "^1"
+
       - name: Download definition files
         shell: bash
         run: |
           cd definitions
           curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.lua
           curl -O https://gist.githubusercontent.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
-          curl -O https://gist.githubusercontent.com/zxibs/1b861e0123ae548f282b106818202afd/raw/roact.d.lua
           curl -O https://gist.githubusercontent.com/zxibs/a24c601e5173f0b60df6f72d01010375/raw/matter.d.lua
-          curl -O https://gist.githubusercontent.com/zxibs/5cecb2a1bc36591145b9675cca99aee3/raw/roactRouter.d.lua
           curl -O https://gist.githubusercontent.com/zxibs/e97be8aa7f5d0770eccb3b79b92b1d83/raw/profileService.d.lua
           cd ..
 
@@ -41,18 +44,22 @@ jobs:
           git commit -m --amend --reset-author "Installed definitions" || echo 'No changes to commit'
           git push || echo 'No changes to push'
 
+      - name: Install packages
+        shell: bash
+        run: |
+          wally install
+          rojo sourcemap default.project.json --output sourcemap.json
+          wally-package-types --sourcemap sourcemap.json Packages/
+
       - name: Analyze
         shell: bash
         run: |
-          rojo sourcemap default.project.json --output sourcemap.json
           luau-lsp analyze --no-strict-dm-types src/ \
             --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
             --flag:LuauParseDeclareClassIndexer=true \
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
-            --definitions=definitions/roact.d.lua \
             --definitions=definitions/matter.d.lua \
-            --definitions=definitions/roactRouter.d.lua \
             --definitions=definitions/profileService.d.lua \
             src/
         

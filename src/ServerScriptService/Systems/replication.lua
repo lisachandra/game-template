@@ -26,7 +26,7 @@ local EXCLUDED = {
 }
 
 local NONE = HttpService:GenerateGUID(false)
-local TIME_REPLICATE = 0.5
+local TIME_REPLICATE = 0.3
 
 local replicatedComponents: Array<Matter.Component<any>> = {}
 local localReplicatedComponents: Array<Matter.Component<any>> = {}
