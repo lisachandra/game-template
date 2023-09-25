@@ -1,10 +1,15 @@
+--!nonstrict
+
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local StarterPlayerScripts = script.Parent
+
+_G.__DEV__ = RunService:IsStudio()
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -50,7 +55,6 @@ ReactRoblox.createRoot(Instance.new("Folder"))
     :render(ReactRoblox.createPortal(React.createElement(
         require(StarterPlayerScripts.App), {
             world = world,
-            store = store,
             entityId = LocalPlayer:GetAttribute("clientEntityId"),
             scale = nil :: any,
         }

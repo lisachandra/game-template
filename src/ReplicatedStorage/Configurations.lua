@@ -9,7 +9,7 @@ local IS_STUDIO = RunService:IsStudio()
 
 local function getEnum(str: string)
 	local paths = str:split(".")
-	local input: Enum.KeyCode | Enum.UserInputType = Enum :: any
+	local input = Enum :: any
 
 	for _index, path in paths do
 		if path == "Enum" then
@@ -22,28 +22,32 @@ local function getEnum(str: string)
 	return input
 end
 
-local function getControls(str: string)
+local function getEnums(str: string)
 	local keys = str:gsub("%s", ""):split(",")
-	local controls: ActionManager.Controls = {}
+	local enums = {}
 
 	for _index, key in keys do
-		table.insert(controls, getEnum(key))
+		table.insert(enums, getEnum(key))
 	end
 
-	return ActionManager.new(controls)
+	return enums
+end
+
+local function getControls(str: string)
+	return ActionManager.new(getEnums(str))
 end
 
 local function setConfig(self, key, value)
 	self[key] = if key == "controls" then
 		getControls(value)
 	elseif type(value) == "string" and value:find("Enum") then 
-		getEnum(value)
+		getEnums(value)
 	else value
 end
 
 local function setValue(self, key, value)
 	self[key] = if type(value) == "string" and value:find("Enum") then 
-		getEnum(value)
+		getEnums(value)
 	else value
 end
 

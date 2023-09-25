@@ -4,8 +4,8 @@ local ReplicatedStorage = script.Parent.Parent
 local Shared = ReplicatedStorage.Shared
 local Packages = ReplicatedStorage.Packages
 
-local Matter = require(Shared.Matter)
 local React = require(Packages.React)
+local Matter = require(Shared.Matter)
 local Rodux = require(Packages.Rodux)
 local Sift = require(Packages.Sift)
 
@@ -29,7 +29,9 @@ export type ClientState = {
     serverTime: number,
 }
 
-export type ServerState = {}
+export type ServerState = {
+    world: Matter.World
+}
 
 export type Store = typeof(Rodux.Store.new(nil :: any, nil :: any, nil :: any, nil :: any))
 
@@ -78,6 +80,12 @@ else
     creators = {}
     reducers = {}
     middlewares = { Rodux.thunkMiddleware :: any }
+
+    for _index, key in {
+        "world",
+    } do
+        reducers[key] = createReducer(key)
+    end
 end
 
 store = Rodux.Store.new(reducer, initialState, middlewares, {
@@ -93,10 +101,10 @@ store = Rodux.Store.new(reducer, initialState, middlewares, {
 store.changed.connect(store.changed :: any, function(new, old)
     for key, update in updaters do
         if type(new[key]) == "table" and type(old[key]) == "table" then
-            if not Sift.Dictionary.equals(new[key], old[key]) then
+            if not Sift.Dictionary.equalsDeep(new[key], old[key]) then
                 update(new[key])
             end
-        else
+        elseif new[key] ~= old[key] then
             update(new[key])
         end
     end

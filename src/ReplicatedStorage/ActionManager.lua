@@ -17,17 +17,17 @@ ActionManager.__index = ActionManager
 
 ActionManager.inputs = {} :: Array<Control>
 ActionManager.pressed = {} :: Array<string>
-ActionManager._actions = {} :: Dictionary<Controls>
+ActionManager._objects = {} :: Array<Action>
 ActionManager._actionPressed = GoodSignal.new() :: GoodSignal.Signal<string, boolean>
 
 local function getControls()
     local controlsPressed: Array<string> = {}
 
-    for guid, controls in ActionManager._actions do
-        if Array.every(controls, function(enum)
+    for _index, action in ActionManager._objects do
+        if Array.every(action.controls, function(enum)
             return Array.includes(ActionManager.inputs, enum)
         end) then
-            table.insert(controlsPressed, guid)
+            table.insert(controlsPressed, action.guid)
         end
     end
 
@@ -36,12 +36,20 @@ end
 
 function ActionManager.new(controls: Controls)
     if IS_CLIENT then
-        local GUID = HttpService:GenerateGUID(false)
-        ActionManager._actions[GUID] = controls
+        for _index, action in ActionManager._objects do
+            if Array.equals(action.controls, controls) then
+                return action
+            end
+        end
 
-        return setmetatable({
-            guid = GUID,
+        local self = setmetatable({
+            guid = HttpService:GenerateGUID(false),
+            controls = controls,
         }, ActionManager)
+
+        table.insert(ActionManager._objects, self)
+
+        return self
     end
 
     return controls :: any

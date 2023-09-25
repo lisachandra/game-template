@@ -3,7 +3,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Camera = workspace.CurrentCamera
 
 local Packages = ReplicatedStorage.Packages
+local Shared = ReplicatedStorage.Shared
 
+local ReactRouter = require(Shared.ReactRouter)
 local React = require(Packages.React)
 local Sift = require(Packages.Sift)
 
@@ -14,7 +16,9 @@ local e = React.createElement
 local DEFAULT_SCALE = 1
 local DEFAULT_HEIGHT = 720
 
-local function App(props: Context.context)
+local App: React.StatelessFunctionalComponent<Context.context>
+
+function App(props)
     local scale, setScale = React.useBinding(0)
 
     React.useEffect(function()
@@ -34,14 +38,14 @@ local function App(props: Context.context)
         end
     end, {})
 
-    return e(Context.Provider, { value = Sift.Dictionary.merge(props, { scale = scale }) }, {
-        App = e("ScreenGui", {
-            ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-            IgnoreGuiInset = true,
-            ResetOnSpawn = false,
-            Enabled = true,
-        }, {
-
+    return e(ReactRouter.Router, {}, {
+        Provider = e(Context.Provider, { value = Sift.Dictionary.merge(props, { scale = scale }) }, {
+            App = e("ScreenGui", {
+                ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+                IgnoreGuiInset = true,
+                ResetOnSpawn = false,
+                Enabled = true,
+            }, {})
         })
     })
 end
