@@ -4,6 +4,7 @@ local Camera = workspace.CurrentCamera
 
 local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
+local Hooks = script.Hooks
 
 local ReactRouter = require(Shared.ReactRouter)
 local React = require(Packages.React)
@@ -11,31 +12,26 @@ local Sift = require(Packages.Sift)
 
 local Context = require(script.Context)
 
+local useEventConnection = require(Hooks.useEventConnection)
+
+local ViewportSizeChanged = Camera:GetPropertyChangedSignal("ViewportSize")
+
 local e = React.createElement
 
-local DEFAULT_SCALE = 1
-local DEFAULT_HEIGHT = 720
+local function computeScale(viewportSize: Vector2): number
+    local multiplier = 1 / 1080
+    local scale = if viewportSize.Y < viewportSize.X then
+        multiplier * viewportSize.Y
+    else multiplier * viewportSize.X
 
-local App: React.StatelessFunctionalComponent<Context.context>
+    return scale
+end
 
-function App(props)
-    local scale, setScale = React.useBinding(0)
+local function App(props: Context.context)
+    local scale, setScale = React.useBinding(computeScale(Camera.ViewportSize))
 
-    React.useEffect(function()
-        local connection; connection = Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-            local multiplier = DEFAULT_SCALE / DEFAULT_HEIGHT
-            local size = Camera.ViewportSize
-
-            setScale(
-                if size.Y < size.X then
-                    multiplier * size.Y
-                else multiplier * size.X
-            )
-        end)
-
-        return function()
-            connection:Disconnect()
-        end
+    useEventConnection(ViewportSizeChanged, function()
+        setScale(computeScale(Camera.ViewportSize))
     end, {})
 
     return e(ReactRouter.Router, {}, {
@@ -50,4 +46,4 @@ function App(props)
     })
 end
 
-return App
+return { render = App, computeScale = computeScale }

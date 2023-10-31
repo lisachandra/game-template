@@ -15,7 +15,7 @@ type payload = Dictionary<Dictionary<{ data: table? }>>
 
 local function Replicate(world: Matter.World, store: Rodux.Store)
 	local function debugPrint(...)
-		local state: Rodux.ClientState = store.getState(store :: any)
+		local state: Rodux.ClientState = store:getState()
 
 		if state.debugEnabled then
 			print("Replication>", ...)
@@ -74,7 +74,7 @@ local function Replicate(world: Matter.World, store: Rodux.Store)
 			end
 
 			if clientEntityId == nil then
-				clientEntityId = world:spawn(unpack(componentsToInsert))
+				local clientEntityId = world:spawn(unpack(componentsToInsert))
 
 				entityIdMap[serverEntityId] = clientEntityId
 

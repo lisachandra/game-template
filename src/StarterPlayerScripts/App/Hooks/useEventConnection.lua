@@ -15,7 +15,7 @@ local function useEventConnection<T...>(
 		return function()
 			connection:Disconnect()
 		end
-	end, { event, cachedCallback } :: { unknown })
+	end, { event, cachedCallback } :: Array<any>)
 end
 
 return useEventConnection

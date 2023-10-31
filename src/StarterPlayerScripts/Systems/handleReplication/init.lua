@@ -1,5 +1,3 @@
---!nonstrict
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
@@ -11,7 +9,7 @@ local Bridges = require(Shared.Bridges)
 local Bridges: Bridges.Bridges<Bridges.ClientBridge> = Bridges
 
 local processors: Dictionary<(...any) -> ()> = {}; for _index, processor in script:GetChildren() do
-	processors[processor.Name] = require(processor)
+	processors[processor.Name] = require(processor) :: any
 end
 
 local function handleReplication(world: Matter.World)

@@ -1,5 +1,3 @@
---!nonstrict
-
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -53,7 +51,7 @@ end
 
 ReactRoblox.createRoot(Instance.new("Folder"))
     :render(ReactRoblox.createPortal(React.createElement(
-        require(StarterPlayerScripts.App), {
+        require(StarterPlayerScripts.App).render, {
             world = world,
             entityId = LocalPlayer:GetAttribute("clientEntityId"),
             scale = nil :: any,

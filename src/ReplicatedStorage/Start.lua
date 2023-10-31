@@ -1,5 +1,3 @@
---!nonstrict
-
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = script.Parent.Parent
@@ -40,7 +38,7 @@ local function Start(container: Instance)
 	local loop = Matter.Loop.new(world, Rodux.store, debugger:getWidgets())
 
     local systems = {}; for _index, system in container:GetChildren() do
-        table.insert(systems, require(system))
+        table.insert(systems, require(system) :: any)
     end
 
 	Rodux.store:dispatch(function(store: Rodux.Store)

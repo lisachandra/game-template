@@ -5,6 +5,8 @@ local Packages = ReplicatedStorage.Packages
 local BridgeNet2 = require(Packages.BridgeNet2)
 
 local REMOTES = {
+    "Replication",
+
     "MatterReplication",
 
     "Time",
@@ -14,6 +16,8 @@ export type ClientBridge = typeof(BridgeNet2.ClientBridge(""))
 export type ServerBridge = typeof(BridgeNet2.ServerBridge(""))
 
 export type Bridges<T> = {
+    Replication: T,
+
     MatterReplication: T,
     
     Time: T,

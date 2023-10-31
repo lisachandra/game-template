@@ -33,7 +33,7 @@ export type ServerState = {
     world: Matter.World
 }
 
-export type Store = typeof(Rodux.Store.new(nil :: any, nil :: any, nil :: any, nil :: any))
+export type Store = any
 
 local function createReducer(key: string)
     return function(value: any?, action: action)

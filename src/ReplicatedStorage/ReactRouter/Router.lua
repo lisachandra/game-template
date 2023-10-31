@@ -14,32 +14,29 @@ type props = {
     children: table?,
 }
 
-local Router: React.StatelessFunctionalComponent<props>
+local function Router(props: props)
+    local history = React.useRef(History.new())
 
-function Router(props)
-    -- FIXME: Luau: Delete this workaround when new type solver comes out
-    local history = React.useRef(History.new()); if history.current then
-        local location, setLocation = React.useState(history.current.location)
+    if not history.current then return end
 
-        React.useEffect(function()
-            local listener = history.current.onChanged:Connect(function()
-                setLocation(history.current.location)
-            end)
+    local location, setLocation = React.useState(history.current.location)
 
-            return function()
-                listener:Disconnect()
-            end
-        end, {})
+    React.useEffect(function()
+        local listener = history.current.onChanged:Connect(function()
+            setLocation(history.current.location)
+        end)
 
-        return e(RouterContext.Provider, {
-            value = {
-                location = location,
-                history = history.current
-            },
-        }, props.children)
-    end
+        return function()
+            listener:Disconnect()
+        end
+    end, {})
 
-    return nil :: any
+    return e(RouterContext.Provider, {
+        value = {
+            location = location,
+            history = history.current
+        },
+    }, props.children)
 end
 
 return Router

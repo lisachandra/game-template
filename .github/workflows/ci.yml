@@ -30,16 +30,16 @@ jobs:
         run: |
           cd definitions
           curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.lua
-          curl -O https://gist.githubusercontent.com/zxibs/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
-          curl -O https://gist.githubusercontent.com/zxibs/a24c601e5173f0b60df6f72d01010375/raw/matter.d.lua
-          curl -O https://gist.githubusercontent.com/zxibs/e97be8aa7f5d0770eccb3b79b92b1d83/raw/profileService.d.lua
+          curl -O https://gist.githubusercontent.com/lisachandra/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
+          curl -O https://gist.githubusercontent.com/lisachandra/a24c601e5173f0b60df6f72d01010375/raw/matter.d.lua
+          curl -O https://gist.githubusercontent.com/lisachandra/e97be8aa7f5d0770eccb3b79b92b1d83/raw/profileService.d.lua
           cd ..
 
       - name: Push new definition files
         shell: bash
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add definitions/ || echo 'No changes to add'
           git commit -m --amend --reset-author "Installed definitions" || echo 'No changes to commit'
           git push || echo 'No changes to push'
@@ -56,7 +56,9 @@ jobs:
         run: |
           luau-lsp analyze --no-strict-dm-types src/ \
             --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
-            --flag:LuauParseDeclareClassIndexer=true \
+            --flag:LuauTinyControlFlowAnalysis=True \
+            --flag:LuauLoopControlFlowAnalysis=True \
+            --flag:LuauParseDeclareClassIndexer=True \
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
             --definitions=definitions/matter.d.lua \

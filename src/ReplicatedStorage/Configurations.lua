@@ -1,11 +1,18 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = script.Parent.Parent
 
-local ActionManager = require(script.Parent.ActionManager)
+local Packages = ReplicatedStorage.Packages
+local Shared = ReplicatedStorage.Shared
+
+local React = require(Packages.React)
+
+local ActionManager = require(Shared.ActionManager)
 
 local Configurations: Dictionary<any> = {}
 
 local IS_STUDIO = RunService:IsStudio()
+
+local hooks: Dictionary<() -> ()> = {}
 
 local function getEnum(str: string)
 	local paths = str:split(".")
@@ -49,6 +56,10 @@ local function setValue(self, key, value)
 	self[key] = if type(value) == "string" and value:find("Enum") then 
 		getEnums(value)
 	else value
+
+	local updateHookValue = hooks[`{self}_{key}`]; if updateHookValue then
+		updateHookValue()
+	end
 end
 
 local function processConfig(Folder: Folder, Storage: table)
@@ -81,6 +92,30 @@ local function processConfig(Folder: Folder, Storage: table)
 	end
 end
 
+local function useState<T>(self: table, key: string, _typecheck: T): T
+	local value, setValue = React.useState(self[key])
+	local hookKey = `{self}_{key}`; if hooks[hookKey] then
+		local prevHook = hooks[hookKey]
+
+		hooks[hookKey] = function()
+			prevHook()
+			setValue(self[key])
+		end
+	else
+		hooks[hookKey] = function()
+			setValue(self[key])
+		end
+	end
+
+	React.useEffect(function()
+		return function()
+			hooks[hookKey] = nil
+		end
+	end, {})
+
+	return value
+end
+
 for _index, Folder: Folder in ReplicatedStorage.Configurations:GetChildren() do
 	Configurations[Folder.Name] = {}
 	processConfig(Folder, Configurations[Folder.Name])
@@ -88,4 +123,8 @@ end
 
 type Configurations = {}
 
-return Configurations :: Configurations
+return setmetatable(Configurations :: Configurations, {
+	__index = {
+		useState = useState,
+	},
+})
