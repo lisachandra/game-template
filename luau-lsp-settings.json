@@ -1,0 +1,18 @@
+{
+    "luau-lsp.diagnostics.workspace": true,
+    "luau-lsp.fflags.sync": true,
+    "luau-lsp.fflags.override": {
+        "LuauTinyControlFlowAnalysis": "True",
+        "LuauLoopControlFlowAnalysis": "True",
+        "LuauParseDeclareClassIndexer": "True"
+    },
+    "luau-lsp.types.definitionFiles": [
+        "definitions/utils.d.lua",
+        "definitions/matter.d.lua",
+        "definitions/profileService.d.lua"
+    ],
+    "luau-lsp.ignoreGlobs": [
+        "Packages/**",
+        "node_modules/**"
+    ]
+}
