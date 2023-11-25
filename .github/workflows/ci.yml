@@ -56,7 +56,6 @@ jobs:
             --ignore=Packages/** \
             --ignore=node_modules/** \
             --flag:LuauTinyControlFlowAnalysis=True \
-            --flag:LuauParseDeclareClassIndexer=True \
             --definitions=definitions/globalTypes.d.lua \
             --definitions=definitions/utils.d.lua \
             --definitions=definitions/matter.d.lua \
