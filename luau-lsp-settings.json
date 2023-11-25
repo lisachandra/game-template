@@ -1,14 +1,4 @@
 {
-    "luau-lsp.diagnostics.workspace": true,
-    "luau-lsp.fflags.enableByDefault": true,
-    "luau-lsp.types.definitionFiles": [
-        "definitions/utils.d.lua",
-        "definitions/matter.d.lua",
-        "definitions/globalTypes.d.lua",
-        "definitions/profileService.d.lua"
-    ],
-    "luau-lsp.ignoreGlobs": [
-        "Packages/**",
-        "node_modules/**"
-    ]
+    "luau-lsp.diagnostics.strictDatamodelTypes": false,
+    "luau-lsp.diagnostics.workspace": true
 }

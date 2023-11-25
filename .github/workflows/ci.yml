@@ -53,5 +53,13 @@ jobs:
             --settings=luau-lsp-settings.json \
             --sourcemap=sourcemap.json \
             --base-luaurc=.luaurc \
+            --ignore=Packages/** \
+            --ignore=node_modules/** \
+            --flag:LuauTinyControlFlowAnalysis=True \
+            --flag:LuauParseDeclareClassIndexer=True \
+            --definitions=definitions/globalTypes.d.lua \
+            --definitions=definitions/utils.d.lua \
+            --definitions=definitions/matter.d.lua \
+            --definitions=definitions/profileService.d.lua \
             src/
         

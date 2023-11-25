@@ -7,6 +7,8 @@
     "customizations": {
 		"vscode": {
 			"settings": {
+                "luau-lsp.plugin.enabled": true,
+                "luau-lsp.diagnostics.strictDatamodelTypes": false,
                 "luau-lsp.diagnostics.workspace": true,
                 "editor.unicodeHighlight.nonBasicASCII": false,
                 "editor.unicodeHighlight.invisibleCharacters": false,
@@ -48,10 +50,10 @@
                     "**/*.css",
                     "**/*.scss"
                 ],
+                "luau-lsp.fflags.sync": false,
                 "luau-lsp.fflags.enableByDefault": true,
                 "luau-lsp.fflags.override": {
                     "LuauTinyControlFlowAnalysis": "True",
-                    "LuauLoopControlFlowAnalysis": "True",
                     "LuauParseDeclareClassIndexer": "True"
                 }
             },
