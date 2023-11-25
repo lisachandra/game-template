@@ -1,0 +1,69 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "."
+    },
+
+    "customizations": {
+		"vscode": {
+			"settings": {
+                "luau-lsp.diagnostics.workspace": true,
+                "editor.unicodeHighlight.nonBasicASCII": false,
+                "editor.unicodeHighlight.invisibleCharacters": false,
+                "luau-lsp.completion.addTabstopAfterParentheses": false,
+                "git.openRepositoryInParentFolders": "never",
+                "luau-lsp.ignoreGlobs": [
+                    "Packages/**",
+                    "node_modules/**"
+                ],
+                "luau-lsp.completion.imports.enabled": true,
+                "luau-lsp.hover.multilineFunctionDefinitions": true,
+                "luau-lsp.hover.showTableKinds": true,
+                "luau-lsp.inlayHints.typeHintMaxLength": 10,
+                "luau-lsp.completion.autocompleteEnd": true,
+                "editor.minimap.autohide": true,
+                "todohighlight.isEnable": true,
+                "todohighlight.exclude": [
+                    "**/Packages/**",
+                    "**/node_modules/**",
+                    "**/bower_components/**",
+                    "**/dist/**",
+                    "**/build/**",
+                    "**/.vscode/**",
+                    "**/.github/**",
+                    "**/_output/**",
+                    "**/*.min.*",
+                    "**/*.map",
+                    "**/.next/**"
+                ],
+                "todohighlight.include": [
+                    "**/*.lua",
+                    "**/*.luau",
+                    "**/*.js",
+                    "**/*.jsx",
+                    "**/*.ts",
+                    "**/*.tsx",
+                    "**/*.html",
+                    "**/*.php",
+                    "**/*.css",
+                    "**/*.scss"
+                ],
+                "luau-lsp.fflags.enableByDefault": true,
+                "luau-lsp.fflags.override": {
+                    "LuauTinyControlFlowAnalysis": "True",
+                    "LuauLoopControlFlowAnalysis": "True",
+                    "LuauParseDeclareClassIndexer": "True"
+                }
+            },
+
+            "extensions": [
+				"JohnnyMorganz.luau-lsp",
+				"wayou.vscode-todo-highlight"
+			]
+		}
+	},
+
+    "postCreateCommand": "foreman github-auth $GITHUB_TOKEN && foreman install && wally install && rojo sourcemap default.project.json --output sourcemap.json && wally-package-types --sourcemap sourcemap.json Packages/",
+
+	"remoteUser": "root"
+}

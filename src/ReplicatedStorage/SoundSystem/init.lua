@@ -30,7 +30,7 @@ function SoundSystem.Play(sound: Sound, location: BasePart?, useReverb: boolean?
 
     if location then
         if RunService:IsServer() then
-            Bridges.Replication:Fire(BridgeNet2.AllPlayers(), { "Sound", sound, location } :: Array<any>); return
+            Bridges.Replication:Fire(BridgeNet2.AllPlayers(), { "Sound", sound, location } :: table); return
         end
 
         if useReverb == nil or useReverb then

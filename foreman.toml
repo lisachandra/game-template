@@ -2,3 +2,4 @@
 rojo = { source = "rojo-rbx/rojo", version = "7.x" }
 wally = { source = "UpliftGames/wally", version = "0.x" }
 luau-lsp = { source = "JohnnyMorganz/luau-lsp", version = "1.x" }
+wally-package-types = { source = "JohnnyMorganz/wally-package-types", version = "1.x" }

@@ -6,11 +6,13 @@ local Shared = ReplicatedStorage.Shared
 local Matter = require(Shared.Matter)
 local Sift = require(Packages.Sift)
 
+type array = Array<unknown>
+
 type storage = {
-	dependencies: Array<any>?,
+	dependencies: array?,
 }
 
-local function useDependency(callback: (old: Array<any>?, new: Array<any>?) -> (), dependencies: Array<any>?, discriminator: string)
+local function useDependencies(callback: (old: array?, new: array?) -> (), dependencies: array?, discriminator: string)
 	local storage: table = Matter.useHookState(discriminator, function()
 		return true
 	end)
@@ -25,4 +27,4 @@ local function useDependency(callback: (old: Array<any>?, new: Array<any>?) -> (
 	storage.dependencies = dependencies
 end
 
-return useDependency
+return useDependencies

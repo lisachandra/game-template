@@ -7,6 +7,7 @@ private = true
 
 [dependencies]
 ProfileService = "brittonfischer/profileservice@^2"
+LuauPolyfill = "jsdotlua/luau-polyfill@^1"
 React = "jsdotlua/react@^17"
 ReactRoblox = "jsdotlua/react-roblox@^17"
 ReactSpring = "chriscerie/react-spring@^2"

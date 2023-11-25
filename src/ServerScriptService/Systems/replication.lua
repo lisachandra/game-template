@@ -59,7 +59,7 @@ local function replication(world: Matter.World)
 	local initialized: Array<Player> = {}
 
 	if Matter.useThrottle(TIME_REPLICATE) then
-		Bridges.Time:Fire(BridgeNet2.AllPlayers(), { os.clock() } :: Array<any>)
+		Bridges.Time:Fire(BridgeNet2.AllPlayers(), { os.clock() } :: table)
 	end
 
 	for entityId, PlayerData in world:query(Components.PlayerData) do

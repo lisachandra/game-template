@@ -7,6 +7,7 @@ local Animations = ReplicatedStorage.Animations
 local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
 
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Promise = require(Packages.Promise)
 local Janitor = require(Packages.Janitor)
 local Matter = require(Shared.Matter)
@@ -19,6 +20,8 @@ local IS_STUDIO = RunService:IsStudio()
 local ANIMATION_IDS = {}
 
 local LOAD_TIMEOUT = 60
+
+type Promise<T> = LuauPolyfill.Promise<T>
 
 for _index, Animation in Animations:GetDescendants() do
     if Animation:IsA("Animation") then
@@ -41,7 +44,7 @@ local function WaitForPlayerLoaded(Player: Player)
     end)
 end
 
-local function PlayerOwnsAsset(Player: Player, assetId: number)
+local function PlayerOwnsAsset(Player: Player, assetId: number): Promise<boolean>
     return IS_STUDIO and Promise.resolve(true) or Promise.new(function(resolve)
         resolve(MarketplaceService:PlayerOwnsAsset(Player, assetId))
     end)

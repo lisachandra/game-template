@@ -49,11 +49,12 @@ while true do
     task.wait(1)
 end
 
+local App = require(StarterPlayerScripts.App)
+
 ReactRoblox.createRoot(Instance.new("Folder"))
     :render(ReactRoblox.createPortal(React.createElement(
-        require(StarterPlayerScripts.App).render, {
+        App.render, {
             world = world,
             entityId = LocalPlayer:GetAttribute("clientEntityId"),
-            scale = nil :: any,
-        }
+        } :: App.Context
     ), PlayerGui))

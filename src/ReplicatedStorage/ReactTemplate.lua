@@ -9,7 +9,17 @@ local ReactTemplate = {}
 
 local APIDump; if RunService:IsClient() then
 	local success; success, APIDump = require(Shared.APIDump):await(); if success then
+		local React = require(Packages.React)
+
 		APIDump = table.clone(APIDump)
+		ReactTemplate._Wrap = newproxy(false)
+		ReactTemplate._Link = newproxy(false)
+		ReactTemplate._LinkContext = React.createContext({} :: LinkContext)
+
+		type ReactElement<T = table> = React.StatelessFunctionalComponent<T>
+		export type LinkContext = {
+			value: ReactElement,
+		}
 
 		for classIndex, Class in APIDump.Classes do
 			if Class.Tags and table.find(Class.Tags, "Service") then
@@ -64,10 +74,8 @@ local APIDump; if RunService:IsClient() then
 		
 			return container
 		end
-
-		local React = require(Packages.React)
 		
-		function ReactTemplate.fromInstance(instance: Instance): React.StatelessFunctionalComponent<table>
+		function ReactTemplate.fromInstance(instance: Instance)
 			local defaultProps = fetchProperties({}, instance.ClassName, instance)
 			local defaultChildren = {}
 		
@@ -81,19 +89,57 @@ local APIDump; if RunService:IsClient() then
 			for key, element in defaultChildren do
 				children[key] = React.createElement(element)
 			end
+
+			local function processChild(key: string, child: any)
+				return if child[ReactTemplate._Wrap] then
+					React.createElement(child.element, child.props)
+				elseif child == React.None or child["$$typeof"] then
+					child else React.createElement(defaultChildren[key], child)
+			end
 		
-			return React.memo(function(props: React.ElementProps<React.StatelessFunctionalComponent<table>>)
+			return React.memo(function(props: any)
 				local propChildren = props.children or {}
 		
 				for key, child in propChildren do
-					propChildren[key] = if child == React.None or child["$$typeof"] then
-						child else React.createElement(defaultChildren[key], child)
+					child = type(child) == "table" and child or {}
+					propChildren[key] = if child[ReactTemplate._Link] then
+						React.createElement(
+							ReactTemplate._LinkContext.Provider,
+							{ value = defaultChildren[key] },
+							{ [key] = processChild(key, child.element) } 
+						)
+					else processChild(key, child)
 				end
 		
 				props.children = merge(children, propChildren, React.None)
 		
 				return React.createElement(instance.ClassName, merge(defaultProps, props, React.None))
 			end) :: any
+		end
+
+		function ReactTemplate.Wrap<T>(element: ReactElement, props: table, children: table?)
+			if children then
+				props = table.clone(props)
+				props.children = children
+			end
+
+			return {
+				[ReactTemplate._Wrap] = true,
+				element = element,
+				props = props,
+			}
+		end
+
+		function ReactTemplate.Link<T>(element: table | ReactElement)
+			return {
+				[ReactTemplate._Link] = true,
+				element = element,
+			}
+		end
+
+		function ReactTemplate.useLinkedTemplate()
+			local LinkContext = React.useContext(ReactTemplate._LinkContext)
+    		return LinkContext and LinkContext.value
 		end
 	else
 		Players.LocalPlayer:Kick("Error fetching api.")

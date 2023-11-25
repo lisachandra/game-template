@@ -13,7 +13,7 @@ local processors: Dictionary<(...any) -> ()> = {}; for _index, processor in scri
 end
 
 local function handleReplication(world: Matter.World)
-	for _index, args: Array<any> in Matter.useEvent(Bridges, "Time") do
+	for _index, args: table in Matter.useEvent(Bridges, "Time") do
 		local serverTime: number = table.unpack(args)
 
 		Rodux.store:dispatch({

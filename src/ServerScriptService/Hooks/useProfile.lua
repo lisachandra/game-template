@@ -12,6 +12,10 @@ end)
 
 local profiles: Dictionary<storage> = {}
 
+export type ProfileStore = ProfileService.ProfileStore
+export type Profile = ProfileService.Profile
+export type Data = ProfileService.Data
+
 type storage = {
     profile: ProfileService.Profile?,
     loading: boolean?,

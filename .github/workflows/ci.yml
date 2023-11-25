@@ -20,11 +20,6 @@ jobs:
           version: "^1.0.1"
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: baptiste0928/cargo-install@v2
-        with:
-          crate: wally-package-types
-          version: "^1"
-
       - name: Download definition files
         shell: bash
         run: |
@@ -54,7 +49,7 @@ jobs:
       - name: Analyze
         shell: bash
         run: |
-          luau-lsp analyze --no-strict-dm-types src/ \
+          luau-lsp analyze src/ \
             --ignore=Packages/** --base-luaurc=.luaurc --sourcemap=sourcemap.json \
             --flag:LuauTinyControlFlowAnalysis=True \
             --flag:LuauLoopControlFlowAnalysis=True \

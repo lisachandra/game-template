@@ -1,21 +1,25 @@
-local React = require(game:GetService("ReplicatedStorage").Packages.React)
+--!nonstrict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local React = require(ReplicatedStorage.Packages.React)
+local GoodSignal = require(ReplicatedStorage.Shared.GoodSignal)
 
 local function useEventConnection<T...>(
-	event: RBXScriptSignal<T...>, -- Can also include | Signal.Signal<T...> if you're using a custom signal type
+	event: RBXScriptSignal<T...> | GoodSignal.Signal<T...>,
 	callback: (T...) -> (),
-	dependencies: { any }
+	dependencies: Array<unknown>?
 )
 	local cachedCallback = React.useMemo(function()
 		return callback
 	end, dependencies)
 
 	React.useEffect(function()
-		local connection = event:Connect(cachedCallback)
+		local connection = (event.Connect :: any)(event, cachedCallback)
 
 		return function()
 			connection:Disconnect()
 		end
-	end, { event, cachedCallback } :: Array<any>)
+	end, { event, cachedCallback })
 end
 
 return useEventConnection
