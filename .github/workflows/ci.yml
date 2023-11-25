@@ -24,6 +24,7 @@ jobs:
         shell: bash
         run: |
           cd definitions
+          curl -O https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.lua
           curl -O https://gist.githubusercontent.com/lisachandra/81fc195db5e0e374c63b98c262b99e1d/raw/utils.d.lua
           curl -O https://gist.githubusercontent.com/lisachandra/a24c601e5173f0b60df6f72d01010375/raw/matter.d.lua
           curl -O https://gist.githubusercontent.com/lisachandra/e97be8aa7f5d0770eccb3b79b92b1d83/raw/profileService.d.lua
@@ -48,5 +49,9 @@ jobs:
       - name: Analyze
         shell: bash
         run: |
-          luau-lsp analyze --settings=luau-lsp-settings.json src/
+          luau-lsp analyze \
+            --settings=luau-lsp-settings.json \
+            --sourcemap=sourcemap.json \
+            --base-luaurc=.luaurc \
+            src/
         
