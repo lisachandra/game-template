@@ -1,15 +1,18 @@
 --!nonstrict
-
 export type Signal<T... = ...any> = {
-	Fire: (self: any, T...) -> (),
-	DisconnectAll: (self: any) -> (),
-    Wait: (self: any) -> T...,
-    Connect: (self: any, callback: (T...) -> ()) -> Connection,
-    Once: (self: any, callback: (T...) -> ()) -> Connection,
+	Fire: (self: Signal<T...>, T...) -> (),
+	DisconnectAll: (self: Signal<T...>) -> (),
+    Wait: (self: Signal<T...>) -> T...,
+    Connect: (self: Signal<T...>, callback: (T...) -> ()) -> Connection,
+    Once: (self: Signal<T...>, callback: (T...) -> ()) -> Connection,
 }
 
-type Connection = {
-	Disconnect: (self: any) -> (),
+export type Connection = {
+	Disconnect: (self: Connection) -> (),
+
+	_connected: boolean,
+	_signal: boolean,
+	_fn: (...any?) -> ...any?,
 }
 
 local freeRunnerThread = nil

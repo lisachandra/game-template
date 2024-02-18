@@ -10,7 +10,7 @@ local useValue = require(script.Parent.useValue)
 
 local function useTimeout(callback: () -> (), delay: number?)
     local callbackMemo = useLatestCallback(callback)
-    local cancel = useValue((nil :: any) :: () -> ())
+    local cancel = useValue((nil :: unknown) :: () -> ())
 
     local clear = React.useCallback(function()
         if cancel.current then

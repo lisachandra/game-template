@@ -11,7 +11,7 @@ local function useInterval(callback: () -> (), delay: number?, immediate: boolea
     local immediate = if immediate == nil then false else immediate
 
     local callbackMemo = useLatestCallback(callback)
-    local cancel = useValue((nil :: any) :: () -> ())
+    local cancel = useValue((nil :: unknown) :: () -> ())
 
     local clear = React.useCallback(function()
         if cancel.current then

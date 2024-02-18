@@ -10,7 +10,7 @@ export type Debounced<T> = typeof(setmetatable({} :: {
     cancel: () -> (),
     flush: () -> unknown,
     pending: () -> boolean,
-}, { __call = (nil :: any) :: T }))
+}, { __call = (nil :: unknown) :: T }))
 
 local function debounce<T>(callback: T, wait: number?, options: DebounceOptions?): Debounced<T>
     local wait = wait or 0

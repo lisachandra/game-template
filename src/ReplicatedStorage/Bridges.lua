@@ -6,8 +6,9 @@ local BridgeNet2 = require(Packages.BridgeNet2)
 
 local REMOTES = {
     "Replication",
-
     "MatterReplication",
+
+    "StateChange",
 
     "Time",
 }
@@ -17,9 +18,10 @@ export type ServerBridge = typeof(BridgeNet2.ServerBridge(""))
 
 export type Bridges<T> = {
     Replication: T,
-
     MatterReplication: T,
-    
+
+    StateChange: T,
+
     Time: T,
 }
 

@@ -7,9 +7,8 @@ local Packages = ReplicatedStorage.Packages
 local React = require(Packages.React)
 local Matter = require(Shared.Matter)
 local Rodux = require(Packages.Rodux)
-local Sift = require(Packages.Sift)
 
-local updaters: Dictionary<(newValue: any) -> ()> = {}
+local hooks: Dictionary<(newValue: any) -> ()> = {}
 
 local initialState: ClientState | ServerState
 local creators: Dictionary<creator>
@@ -27,12 +26,15 @@ export type ClientState = {
     debugEnabled: boolean,
     world: Matter.World,
     serverTime: number,
+
+    ui: {},
 }
 
 export type ServerState = {
-    world: Matter.World
+    world: Matter.World,
 }
 
+-- FIXME: shit rodux type checking
 export type Store = any
 
 local function createReducer(key: string)
@@ -46,24 +48,82 @@ local function createReducer(key: string)
 end
 
 local function reducer(state: Dictionary<any>, action: action)
-    local newState = {}; for key, reducer in reducers do
-        newState[key] = reducer(state[key], action)
+    local newState = {}; if action.type == "ui" then
+        newState.ui = table.clone(state.ui)
+
+        local paths = action.key:split(".")
+        local value = newState.ui
+        local self, key
+
+        for _index, path in paths do
+            self = value
+            key = path
+            value = value[path]
+        end
+
+        self[key] = action.value
+
+        local updateHookValue = hooks[action.key]; if updateHookValue then
+            updateHookValue(action.value)
+        end
+    else
+        for key, reducer in reducers do
+            newState[key] = reducer(state[key], action)
+        end
     end
 
     return newState
 end
 
-local function useState(key: string)
-    local state = store:getState()
-    local value, update = React.useState(state[key])
+local function useUIState(key: string)
+    local value = React.useMemo(function()
+        local state: ClientState = store:getState()
+    
+        local paths = key:split(".")
+        local value = state.ui
 
-    updaters[key] = update
+        for _index, path in paths do
+            value = value[path]
+        end
 
-    return value
+        return value
+    end, {})
+
+    local value, setValue = React.useState(value)
+
+    local setState = React.useCallback(function(newValue)
+        store:dispatch({
+            type = "ui",
+            key = key,
+            value = newValue,
+        })
+    end, {})
+
+    React.useEffect(function()
+        local prevHook = hooks[key]
+    
+        hooks[key] = function(newValue)
+            if prevHook then
+                prevHook(newValue)
+            end
+
+            setValue(newValue)
+        end
+
+        return function()
+            hooks[key] = nil
+        end
+    end, {})
+
+    return value, setState
 end
 
 if RunService:IsClient() then
-    initialState = { debugEnabled = false } :: ClientState
+    initialState = {
+        debugEnabled = false,
+        ui = {},
+    } :: ClientState
+
     creators = {}
     reducers = {}
     middlewares = { Rodux.thunkMiddleware :: any }
@@ -98,20 +158,8 @@ store = Rodux.Store.new(reducer, initialState, middlewares, {
     end,
 })
 
-store.changed.connect(store.changed :: any, function(new, old)
-    for key, update in updaters do
-        if type(new[key]) == "table" and type(old[key]) == "table" then
-            if not Sift.Dictionary.equalsDeep(new[key], old[key]) then
-                update(new[key])
-            end
-        elseif new[key] ~= old[key] then
-            update(new[key])
-        end
-    end
-end)
-
 return {
     store = store :: Store,
-    useState = useState,
+    useUIState = useUIState,
     creators = creators,
 }

@@ -9,7 +9,7 @@ local function usePropertyBinding(...: string): (table, ...React.Binding<unknown
         local setBindings: Array<((value: unknown) -> ())> = {}
 
         for index in properties do
-            local binding, setBinding = React.createBinding(nil :: any)
+            local binding, setBinding = React.createBinding(nil :: unknown)
 
             bindings[index] = binding
             setBindings[index] = setBinding

@@ -12,7 +12,7 @@ local processors: Dictionary<(...any) -> ()> = {}; for _index, processor in scri
 	processors[processor.Name] = require(processor) :: any
 end
 
-local function handleReplication(world: Matter.World)
+local function handleEffects(world: Matter.World)
 	for _index, args: table in Matter.useEvent(Bridges, "Time") do
 		local serverTime: number = table.unpack(args)
 
@@ -32,4 +32,4 @@ local function handleReplication(world: Matter.World)
 	end
 end
 
-return handleReplication
+return handleEffects

@@ -8,20 +8,29 @@ local BridgeNet2 = require(Packages.BridgeNet2)
 local Matter = require(Shared.Matter)
 local Sift = require(Packages.Sift)
 
-local Components = require(Shared.Components)
+local Components = require(Shared.Matter.Components)
 local Bridges = require(Shared.Bridges)
 local Bridges: Bridges.Bridges<Bridges.ServerBridge> = Bridges
 
 local REPLICATED_COMPONENTS = {
 	"PlayerData",
+	"NPCData",
 	"Tag",
 }
 
-local LOCAL_REPLICATED_COMPONENTS = {}
+local LOCAL_REPLICATED_COMPONENTS = {
+	"StateMachines",
+}
 
 local EXCLUDED = {
 	PlayerData = {
 		"Janitor",
+	},
+
+	NPCData = {
+		"Effect",
+		"Janitor",
+		"Object",
 	},
 }
 
@@ -63,42 +72,45 @@ local function replication(world: Matter.World)
 	end
 
 	for entityId, PlayerData in world:query(Components.PlayerData) do
-		if not table.find(hasReceived, PlayerData.Player) then
-			Bridges.MatterReplication:Fire(PlayerData.Player, { {}, NONE })
+		if table.find(hasReceived, PlayerData.Player) then continue end
 
-			table.insert(hasReceived, PlayerData.Player)
-			table.insert(initialized, PlayerData.Player)
+		Bridges.MatterReplication:Fire(PlayerData.Player, { {}, NONE })
 
-			PlayerData.Janitor:Add(function()
-				local index = table.find(hasReceived, PlayerData.Player); if index then
-					table.remove(hasReceived, index)
+		table.insert(hasReceived, PlayerData.Player)
+		table.insert(initialized, PlayerData.Player)
+
+		PlayerData.Janitor:Add(function()
+			local index = table.find(hasReceived, PlayerData.Player); if index then
+				table.remove(hasReceived, index)
+			end
+		end)
+		
+		for _index, component in mergedReplicatedComponents do
+			local isLocalComponent = table.find(localReplicatedComponents, component)
+			local name = `{component}`
+
+			for playerEntityId in world do
+				if isLocalComponent and entityId ~= playerEntityId then continue end
+
+				local key = `{playerEntityId}`
+				local payload = payloads[PlayerData.Player] or {} :: payload
+
+				local component = world:get(playerEntityId, component); if not component then
+					continue
 				end
-			end)
-			
-			for _index, component in mergedReplicatedComponents do
-				local isLocalComponent = table.find(localReplicatedComponents, component)
-				local name = `{component}`
 
-				for playerEntityId, _PlayerData in world:query(Components.PlayerData) do
-					if isLocalComponent and entityId ~= playerEntityId then continue end
-
-					local key = `{playerEntityId}`
-					local payload = payloads[PlayerData.Player] or {} :: payload
-					local component = world:get(playerEntityId, component)
-
-					if payload[key] == nil then
-						payload[key] = {}
-					end
-
-					local excluded = {}; if EXCLUDED[name] then
-						for _index, key in EXCLUDED[name] do
-							excluded[key] = Matter.None
-						end
-					end
-
-					payload[key][name] = { data = component:patch(excluded) }
-					payloads[PlayerData.Player] = payload
+				if payload[key] == nil then
+					payload[key] = {}
 				end
+
+				local excluded = {}; if EXCLUDED[name] then
+					for _index, key in EXCLUDED[name] do
+						excluded[key] = Matter.None
+					end
+				end
+
+				payload[key][name] = { data = component:patch(excluded) }
+				payloads[PlayerData.Player] = payload
 			end
 		end
 	end

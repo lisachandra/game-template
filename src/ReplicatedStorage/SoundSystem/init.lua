@@ -19,13 +19,12 @@ local playCheck = t.tuple(
 )
 
 local DynamicSoundHandler = require(script.DynamicSoundHandler)
+
 local SoundSystem = {}
 
 function SoundSystem.Play(sound: Sound, location: BasePart?, useReverb: boolean?, play: ((sound: Sound, play: () -> ()) -> ())?)
-    do
-        local success, msg = playCheck(sound, location, useReverb, play); if not success then
-            warn(msg, debug.traceback()); return
-        end
+    local success, msg = playCheck(sound, location, useReverb, play); if not success then
+        warn(msg, debug.traceback()); return
     end
 
     if location then

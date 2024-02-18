@@ -8,6 +8,8 @@ local RunService = game:GetService("RunService")
 local StarterPlayerScripts = script.Parent
 
 _G.__DEV__ = RunService:IsStudio()
+_G.__COMPAT_WARNINGS__ = RunService:IsStudio()
+_G.__TEST__ = false
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -18,7 +20,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local React = require(Packages.React)
 local ReactRoblox = require(Packages.ReactRoblox)
 
-local Start = require(Shared.Start)
+local Start = require(Shared.Matter.Start)
 local Bridges = require(Shared.Bridges)
 local Bridges: Bridges.Bridges<Bridges.ClientBridge> = Bridges
 

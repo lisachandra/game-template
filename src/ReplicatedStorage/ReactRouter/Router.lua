@@ -14,10 +14,12 @@ type props = {
     children: table?,
 }
 
-local function Router(props: props)
-    local history = React.useRef(History.new())
+local Router: React.StatelessFunctionalComponent<props>
 
-    if not history.current then return end
+function Router(props)
+    local history = React.useRef(History.new()); if not history.current then
+        return
+    end
 
     local location, setLocation = React.useState(history.current.location)
 

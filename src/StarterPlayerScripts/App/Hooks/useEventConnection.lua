@@ -4,22 +4,62 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
 local GoodSignal = require(ReplicatedStorage.Shared.GoodSignal)
 
-local function useEventConnection<T...>(
-	event: RBXScriptSignal<T...> | GoodSignal.Signal<T...>,
-	callback: (T...) -> (),
-	dependencies: Array<unknown>?
+local useLatest = require(script.Parent.useLatest)
+
+type Signal<T...> = RBXScriptSignal<T...> | GoodSignal.Signal<T...>
+type Connection = RBXScriptConnection | GoodSignal.Connection
+
+type useEventConnection = (
+	(<T...>(
+		event: Signal<T...>,
+		callback: (Connection, T...) -> (),
+		options: { passInConnection: true, once: boolean? }?
+	) -> ()) &
+	(<T...>(
+		event: Signal<T...>,
+		callback: (T...) -> (),
+		options: { passInConnection: false?, once: boolean? }?
+	) -> ())
 )
-	local cachedCallback = React.useMemo(function()
-		return callback
-	end, dependencies)
+
+local useEventConnection = function<T...>(
+	event: Signal<T...>,
+	callback: () -> (),
+	options: { passInConnection: boolean?, once: boolean? }?
+)	
+	local isRBXScriptSignal = typeof(event) == "RBXScriptSignal"
+	local options = {
+		passInConnection = options and options.passInConnection or false,
+		once = options and options.once or false,
+	}
+
+	local callbackRef = useLatest(callback)
 
 	React.useEffect(function()
-		local connection = (event.Connect :: any)(event, cachedCallback)
+		local canDisconnect = true
+		local connection; connection = (event.Connect :: any)(event, function(...)
+			if isRBXScriptSignal and not connection.Connected then
+				return
+			end
+
+			if options.once then
+				connection:Disconnect()
+				canDisconnect = false
+			end
+
+			if options.passInConnection then
+				callbackRef.current(connection, ...)
+			else
+				callbackRef.current(...)
+			end
+		end)
 
 		return function()
-			connection:Disconnect()
+			if canDisconnect then
+				connection:Disconnect()
+			end
 		end
-	end, { event, cachedCallback })
+	end, { event, options.passInConnection, options.once })
 end
 
-return useEventConnection
+return useEventConnection :: useEventConnection

@@ -92,22 +92,21 @@ local function processConfig(Folder: Folder, Storage: table)
 	end
 end
 
-local function useState<T>(self: table, key: string, _typecheck: T): T
+local function useState(self: table, key: string)
 	local value, setValue = React.useState(self[key])
-	local hookKey = `{self}_{key}`; if hooks[hookKey] then
-		local prevHook = hooks[hookKey]
-
-		hooks[hookKey] = function()
-			prevHook()
-			setValue(self[key])
-		end
-	else
-		hooks[hookKey] = function()
-			setValue(self[key])
-		end
-	end
+	local hookKey = `{self}_{key}`
 
 	React.useEffect(function()
+		local prevHook = hooks[key]
+
+		hooks[hookKey] = function()
+			if prevHook then
+				prevHook()
+			end
+
+			setValue(self[key])
+		end
+
 		return function()
 			hooks[hookKey] = nil
 		end

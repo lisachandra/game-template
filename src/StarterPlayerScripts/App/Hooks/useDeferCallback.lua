@@ -11,7 +11,7 @@ local function useDeferCallback<T...>(
     callback: (T...) -> ()
 ): ((T...) -> (), () -> ())
     local callbackRef = useLatest(callback)
-    local connectionRef = useValue((nil :: any) :: RBXScriptConnection)
+    local connectionRef = useValue((nil :: unknown) :: RBXScriptConnection)
 
     local cancel = React.useCallback(function()
         if connectionRef.current then

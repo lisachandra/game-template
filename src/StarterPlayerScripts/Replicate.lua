@@ -5,7 +5,7 @@ local Shared = ReplicatedStorage.Shared
 local Matter = require(Shared.Matter)
 local Rodux = require(Shared.Rodux)
 
-local Components = require(Shared.Components)
+local Components = require(Shared.Matter.Components)
 local Bridges = require(Shared.Bridges)
 local Bridges: Bridges.Bridges<Bridges.ClientBridge> = Bridges
 

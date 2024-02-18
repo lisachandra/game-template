@@ -11,8 +11,8 @@ end
 
 local function usePrevious<T>(value: T, predicate: isStrictEqual?): T | unknown
     local predicate = predicate or isStrictEqual
-    local previousRef = useValue((nil :: any) :: T)
-    local currentRef = useValue((nil :: any) :: T)
+    local previousRef = useValue((nil :: unknown) :: T)
+    local currentRef = useValue((nil :: unknown) :: T)
 
     React.useMemo(function()
         if not predicate(currentRef.current, value) then

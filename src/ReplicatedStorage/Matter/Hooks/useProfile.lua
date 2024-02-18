@@ -1,5 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = script.Parent.Parent
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local Packages = ReplicatedStorage.Packages
 
@@ -22,7 +22,7 @@ type storage = {
 }
 
 local function useProfile(userId: number, Player: Player?): ProfileService.Profile?
-    local name = if Player then Player.Name else tostring(userId)
+    local name = if Player then Player.Name else `{userId}`
     local discriminator = `Player_{userId}`
     local storage = profiles[discriminator] or {} :: any
 
@@ -31,6 +31,7 @@ local function useProfile(userId: number, Player: Player?): ProfileService.Profi
 
         storage.loading = true
         profiles[discriminator] = storage
+
         LoadProfileAsync(discriminator):andThen(function(profile: ProfileService.Profile?)
             print("profile", (profile and "loaded for Player:" or "failed to load for Player:"), name)
 
