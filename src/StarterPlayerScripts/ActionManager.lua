@@ -1,12 +1,12 @@
---!nonstrict
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = script.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Packages = ReplicatedStorage.Packages
+local Shared = ReplicatedStorage.Shared
 
-local GoodSignal = require(script.Parent.GoodSignal)
+local GoodSignal = require(Shared.GoodSignal)
 local Sift = require(Packages.Sift)
 
 local IS_CLIENT = RunService:IsClient()
@@ -122,6 +122,11 @@ end
 
 export type Input = Enum.KeyCode | Enum.UserInputType
 export type Inputs = Array<Input>
-export type Action = typeof(ActionManager.new({} :: Inputs))
+export type Action = typeof(setmetatable({} :: {
+    guid: string,
+    inputs: Inputs,
+    users: number,
+}, ActionManager))
 
 return ActionManager
+

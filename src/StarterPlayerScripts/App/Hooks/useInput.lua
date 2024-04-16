@@ -1,10 +1,11 @@
 --!nonstrict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerScripts = script.Parent.Parent.Parent
 
 local useEventConnection = require(script.Parent.useEventConnection)
 local React = require(ReplicatedStorage.Packages.React)
 
-local ActionManager = require(ReplicatedStorage.Shared.ActionManager)
+local ActionManager = require(PlayerScripts.ActionManager)
 
 local useValue = require(script.Parent.useValue)
 

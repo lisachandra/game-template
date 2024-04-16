@@ -9,8 +9,6 @@ local REMOTES = {
     "MatterReplication",
 
     "StateChange",
-
-    "Time",
 }
 
 export type ClientBridge = typeof(BridgeNet2.ClientBridge(""))
@@ -21,8 +19,6 @@ export type Bridges<T> = {
     MatterReplication: T,
 
     StateChange: T,
-
-    Time: T,
 }
 
 local Bridges: Dictionary<any> = {}

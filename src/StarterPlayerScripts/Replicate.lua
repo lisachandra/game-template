@@ -13,7 +13,7 @@ local NONE: string
 
 type payload = Dictionary<Dictionary<{ data: table? }>>
 
-local function Replicate(world: Matter.World, store: Rodux.Store)
+local function Replicate(world: Matter.World, store: Rodux.Store<Rodux.ClientState>)
 	local function debugPrint(...)
 		local state: Rodux.ClientState = store:getState()
 

@@ -5,7 +5,7 @@ end
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local StarterPlayerScripts = script.Parent
+local PlayerScripts = script.Parent
 
 _G.__DEV__ = RunService:IsStudio()
 _G.__COMPAT_WARNINGS__ = RunService:IsStudio()
@@ -24,7 +24,7 @@ local Start = require(Shared.Matter.Start)
 local Bridges = require(Shared.Bridges)
 local Bridges: Bridges.Bridges<Bridges.ClientBridge> = Bridges
 
-local Replicate = require(StarterPlayerScripts:WaitForChild("Replicate"))
+local Replicate = require(PlayerScripts:WaitForChild("Replicate"))
 
 for _index, name in { "Configurations", "Animations", "Sounds", "UITemplates" } do
     ReplicatedStorage:WaitForChild(name)
@@ -40,7 +40,7 @@ end
 
 Bridges.MatterReplication:Fire(true)
 
-local world, store = Start(StarterPlayerScripts:WaitForChild("Systems"))
+local world, store = Start(PlayerScripts:WaitForChild("Systems"))
 Replicate(world, store)
 
 while true do
@@ -51,7 +51,7 @@ while true do
     task.wait(1)
 end
 
-local App = require(StarterPlayerScripts.App)
+local App = require(PlayerScripts.App)
 
 ReactRoblox.createRoot(Instance.new("Folder"))
     :render(ReactRoblox.createPortal(React.createElement(

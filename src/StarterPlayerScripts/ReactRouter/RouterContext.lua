@@ -1,4 +1,4 @@
-local ReplicatedStorage = script.Parent.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Packages = ReplicatedStorage.Packages
 

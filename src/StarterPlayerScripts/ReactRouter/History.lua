@@ -1,4 +1,4 @@
-local Shared = script.Parent.Parent
+local Shared = game:GetService("ReplicatedStorage").Shared
 
 local GoodSignal = require(Shared.GoodSignal)
 

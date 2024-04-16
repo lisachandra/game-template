@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 local Packages = ReplicatedStorage.Packages
 
-local BridgeNet2 = require(Packages.BridgeNet2)
 local Matter = require(Shared.Matter)
 local Sift = require(Packages.Sift)
 
@@ -35,7 +34,6 @@ local EXCLUDED = {
 }
 
 local NONE = HttpService:GenerateGUID(false)
-local TIME_REPLICATE = 0.3
 
 local replicatedComponents: Array<Matter.Component<any>> = {}
 local localReplicatedComponents: Array<Matter.Component<any>> = {}
@@ -66,10 +64,6 @@ end
 local function replication(world: Matter.World)
 	local payloads: Map<Player, payload> = {}
 	local initialized: Array<Player> = {}
-
-	if Matter.useThrottle(TIME_REPLICATE) then
-		Bridges.Time:Fire(BridgeNet2.AllPlayers(), { os.clock() } :: table)
-	end
 
 	for entityId, PlayerData in world:query(Components.PlayerData) do
 		if table.find(hasReceived, PlayerData.Player) then continue end

@@ -1,15 +1,9 @@
 local SoundService = game:GetService("SoundService")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = script.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Packages = ReplicatedStorage.Packages
-local Shared = ReplicatedStorage.Shared
 
 local t = require(Packages.t)
-local BridgeNet2 = require(Packages.BridgeNet2)
-
-local Bridges = require(Shared.Bridges)
-local Bridges: Bridges.Bridges<Bridges.ClientBridge & Bridges.ServerBridge> = Bridges
 
 local playCheck = t.tuple(
     t.instanceIsA("Sound", {}),
@@ -28,10 +22,6 @@ function SoundSystem.Play(sound: Sound, location: BasePart?, useReverb: boolean?
     end
 
     if location then
-        if RunService:IsServer() then
-            Bridges.Replication:Fire(BridgeNet2.AllPlayers(), { "Sound", sound, location } :: table); return
-        end
-
         if useReverb == nil or useReverb then
             local name = `{sound.Parent}_{sound.Name}`
             DynamicSoundHandler:Play(name, location, play)
@@ -48,7 +38,7 @@ function SoundSystem.Play(sound: Sound, location: BasePart?, useReverb: boolean?
                 sound:Destroy()
             end
         end
-    elseif RunService:IsClient() then
+    else
         SoundService:PlayLocalSound(sound)
     end
 end

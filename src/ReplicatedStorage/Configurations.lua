@@ -1,18 +1,27 @@
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = script.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterPlayerScripts = game:GetService("StarterPlayer").StarterPlayerScripts
 
 local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
 
 local React = require(Packages.React)
-
-local ActionManager = require(Shared.ActionManager)
+local GoodSignal = require(Shared.GoodSignal)
+local ActionManager = require(StarterPlayerScripts.ActionManager)
 
 local Configurations: Dictionary<any> = {}
 
+local IS_RUNNING = RunService:IsRunMode()
 local IS_STUDIO = RunService:IsStudio()
+local IS_CLIENT = RunService:IsClient()
 
-local hooks: Dictionary<() -> ()> = {}
+local changed: GoodSignal.Signal<string, any> = GoodSignal.new()
+
+--HACK: tricking the dumbass typechecker
+if IS_CLIENT and (IS_STUDIO and IS_RUNNING or not IS_STUDIO) then
+	ActionManager = require(Players.LocalPlayer.PlayerScripts:WaitForChild("ActionManager")) :: any
+end
 
 local function getEnum(str: string)
 	local paths = str:split(".")
@@ -41,10 +50,11 @@ local function getEnums(str: string)
 end
 
 local function getControls(str: string)
-	return ActionManager.new(getEnums(str))
+	return IS_CLIENT and ActionManager.new(getEnums(str)) or str
 end
 
 local function setConfig(self, key, value)
+	changed:Fire(`{self}_{key}`, value)
 	self[key] = if key == "controls" then
 		getControls(value)
 	elseif type(value) == "string" and value:find("Enum") then 
@@ -53,13 +63,10 @@ local function setConfig(self, key, value)
 end
 
 local function setValue(self, key, value)
+	changed:Fire(`{self}_{key}`, value)
 	self[key] = if type(value) == "string" and value:find("Enum") then 
 		getEnums(value)
 	else value
-
-	local updateHookValue = hooks[`{self}_{key}`]; if updateHookValue then
-		updateHookValue()
-	end
 end
 
 local function processConfig(Folder: Folder, Storage: table)
@@ -97,20 +104,16 @@ local function useState(self: table, key: string)
 	local hookKey = `{self}_{key}`
 
 	React.useEffect(function()
-		local prevHook = hooks[key]
-
-		hooks[hookKey] = function()
-			if prevHook then
-				prevHook()
+		local connection = changed:Connect(function(keyString: string, newValue)
+			if keyString == hookKey then
+				setValue(newValue)
 			end
-
-			setValue(self[key])
-		end
+		end)
 
 		return function()
-			hooks[hookKey] = nil
+			connection:Disconnect()
 		end
-	end, {})
+	end, { hookKey })
 
 	return value
 end
@@ -120,10 +123,11 @@ for _index, Folder: Folder in ReplicatedStorage.Configurations:GetChildren() do
 	processConfig(Folder, Configurations[Folder.Name])
 end
 
-type Configurations = {}
+export type Configurations = {}
 
 return setmetatable(Configurations :: Configurations, {
 	__index = {
 		useState = useState,
+		_changed = changed,
 	},
 })

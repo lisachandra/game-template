@@ -39,38 +39,34 @@ local function Start(container: Instance)
 		return
 	end
 
-	local loop = Matter.Loop.new(world, debugger:getWidgets())
+	local loop = Matter.Loop.new(world, Rodux.store, debugger:getWidgets())
 
     local systems = {}; for _index, system in container:GetChildren() do
         table.insert(systems, require(system) :: any)
     end
 
-	Rodux.store:dispatch(function(store: Rodux.Store)
-		store:dispatch({
-			type = "world",
-			value = world,
-		})
+	Rodux.store:dispatch({
+		type = "world",
+		value = world,
+	})
 
-		loop:scheduleSystems(systems)
-		debugger:autoInitialize(loop)
+	loop:scheduleSystems(systems)
+	debugger:autoInitialize(loop)
 
-		loop:begin({
-			default = RunService.Heartbeat,
-			Stepped = RunService.Stepped,
-		})
-	end)
+	loop:begin({
+		default = RunService.Heartbeat,
+		Stepped = RunService.Stepped,
+	})
 
 	if RunService:IsClient() then
 		UserInputService.InputBegan:Connect(function(input)
 			if input.KeyCode == Enum.KeyCode.F4 then
-				Rodux.store:dispatch(function(store: Rodux.Store)
-                    store:dispatch({
-						type = "debugEnabled",
-						value = not debugger.enabled,
-                    })
-					
-					debugger:toggle()
-                end)
+				Rodux.store:dispatch({
+					type = "debugEnabled",
+					value = not debugger.enabled,
+				})
+				
+				debugger:toggle()
 			end
 		end)
 	end

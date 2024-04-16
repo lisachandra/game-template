@@ -1,24 +1,18 @@
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = script.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Packages = ReplicatedStorage.Packages
-local Shared = script.Parent
+local Shared = ReplicatedStorage.Shared
 
 local ReactTemplate = {}
 
-local APIDump; if not RunService:IsClient() then
-	require(Shared.APIDump); return ReactTemplate
-end
-
-local success; success, APIDump = require(Shared.APIDump):await(); if not success then
+local success, APIDump = require(Shared.APIDump):await(); if not success then
 	Players.LocalPlayer:Kick("Error fetching api."); return ReactTemplate
 end
 
 local React = require(Packages.React)
 
 APIDump = table.clone(APIDump)
-ReactTemplate._Wrap = newproxy(false)
 ReactTemplate._Link = newproxy(false)
 ReactTemplate._LinkContext = React.createContext({} :: LinkContext)
 
@@ -81,7 +75,7 @@ local function fetchProperties(container: table, class: string, instance: Instan
 	return container
 end
 
-function ReactTemplate.fromInstance(instance: Instance)
+function ReactTemplate.fromInstance(instance: Instance, fragment: boolean?)
 	local defaultProps = fetchProperties({}, instance.ClassName, instance)
 	local defaultChildren = {}
 
@@ -97,14 +91,12 @@ function ReactTemplate.fromInstance(instance: Instance)
 	end
 
 	local function processChild(key: string, child: any)
-		return if child[ReactTemplate._Wrap] then
-			React.createElement(child.element, child.props)
-		elseif child == React.None or child["$$typeof"] then
+		return if child == React.None or child["$$typeof"] then
 			child else React.createElement(defaultChildren[key], child)
 	end
 
 	return React.memo(function(props: any)
-		local propChildren = props.children or {}
+		local propChildren = if fragment then props else props.children or {}
 
 		for key, child in propChildren do
 			child = type(child) == "table" and child or {}
@@ -117,23 +109,14 @@ function ReactTemplate.fromInstance(instance: Instance)
 			else processChild(key, child)
 		end
 
-		props.children = merge(children, propChildren, React.None)
+		if fragment then
+			local fragments = merge(children, propChildren, React.None)
+			return React.createElement(React.Fragment, nil, table.unpack(fragments))
+		end
 
+		props.children = merge(children, propChildren, React.None)
 		return React.createElement(instance.ClassName, merge(defaultProps, props, React.None))
 	end) :: any
-end
-
-function ReactTemplate.Wrap<T>(element: ReactElement, props: table, children: table?)
-	if children then
-		props = table.clone(props)
-		props.children = children
-	end
-
-	return {
-		[ReactTemplate._Wrap] = true,
-		element = element,
-		props = props,
-	}
 end
 
 function ReactTemplate.Link<T>(element: table | ReactElement)

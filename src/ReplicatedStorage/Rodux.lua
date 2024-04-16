@@ -1,5 +1,5 @@
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = script.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Packages = ReplicatedStorage.Packages
@@ -8,24 +8,23 @@ local React = require(Packages.React)
 local Matter = require(Shared.Matter)
 local Rodux = require(Packages.Rodux)
 
-local hooks: Dictionary<(newValue: any) -> ()> = {}
-
 local initialState: ClientState | ServerState
-local creators: Dictionary<creator>
-local reducers: Dictionary<reducer>
-local middlewares: Array<middleware>
+local creators: Dictionary<any>
+local middlewares: Array<any>
 
-local store: Store
+local store
 
-type middleware = (nextDispatch: (action: action) -> (), store: Store) -> ((action: action) -> ())
-type creator = (...any) -> action
-type reducer = (key: string, action: action) -> any
-type action = table & { type: string }
+export type Action<Type > = Rodux.Action<Type >
+export type AnyAction = Rodux.AnyAction 
+export type ActionCreator<Type, Action, Args...> = Rodux.ActionCreator<Type, Action, Args...>
+export type Reducer<State , Action > = Rodux.Reducer<State , Action >
+export type Store<State > = Rodux.Store<State >
+export type ThunkAction<ReturnType, State > = Rodux.ThunkAction<ReturnType, State >
+export type ThunkfulStore<State > = Rodux.ThunkfulStore<State >
 
 export type ClientState = {
     debugEnabled: boolean,
     world: Matter.World,
-    serverTime: number,
 
     ui: {},
 }
@@ -34,25 +33,10 @@ export type ServerState = {
     world: Matter.World,
 }
 
--- FIXME: shit rodux type checking
-export type Store = any
-
-local function createReducer(key: string)
-    return function(value: any?, action: action)
-        if action.type == key then
-            return action.value
-        end
-
-        return value
-    end
-end
-
-local function reducer(state: Dictionary<any>, action: action)
-    local newState = {}; if action.type == "ui" then
-        newState.ui = table.clone(state.ui)
-
+local function reducer(state: Dictionary<any>, action: AnyAction)
+    local newState = table.clone(state); if action.type == "ui" then
         local paths = action.key:split(".")
-        local value = newState.ui
+        local value = newState
         local self, key
 
         for _index, path in paths do
@@ -62,32 +46,26 @@ local function reducer(state: Dictionary<any>, action: action)
         end
 
         self[key] = action.value
-
-        local updateHookValue = hooks[action.key]; if updateHookValue then
-            updateHookValue(action.value)
-        end
     else
-        for key, reducer in reducers do
-            newState[key] = reducer(state[key], action)
-        end
+        newState[action.type] = action.value
     end
 
     return newState
 end
 
-local function useUIState(key: string)
+local function useState(key: string)
     local value = React.useMemo(function()
         local state: ClientState = store:getState()
     
         local paths = key:split(".")
-        local value = state.ui
+        local value = state
 
         for _index, path in paths do
             value = value[path]
         end
 
         return value
-    end, {})
+    end, { key })
 
     local value, setValue = React.useState(value)
 
@@ -97,23 +75,22 @@ local function useUIState(key: string)
             key = key,
             value = newValue,
         })
-    end, {})
+    end, { key })
 
     React.useEffect(function()
-        local prevHook = hooks[key]
-    
-        hooks[key] = function(newValue)
-            if prevHook then
-                prevHook(newValue)
+        return store.changed:connect(function(newState: ClientState)
+            local paths = key:split(".")
+            local newValue = newState
+
+            for _index, path in paths do
+                newValue = newValue[path]
             end
 
-            setValue(newValue)
-        end
-
-        return function()
-            hooks[key] = nil
-        end
-    end, {})
+            if newValue ~= value then
+                setValue(newValue)
+            end
+        end).disconnect
+    end, { value })
 
     return value, setState
 end
@@ -125,27 +102,11 @@ if RunService:IsClient() then
     } :: ClientState
 
     creators = {}
-    reducers = {}
-    middlewares = { Rodux.thunkMiddleware :: any }
-
-    for _index, key in {
-        "world",
-        "debugEnabled",
-        "serverTime",
-    } do
-        reducers[key] = createReducer(key)
-    end
+    middlewares = {}
 else
     initialState = {} :: ServerState
     creators = {}
-    reducers = {}
-    middlewares = { Rodux.thunkMiddleware :: any }
-
-    for _index, key in {
-        "world",
-    } do
-        reducers[key] = createReducer(key)
-    end
+    middlewares = {}
 end
 
 store = Rodux.Store.new(reducer, initialState, middlewares, {
@@ -159,7 +120,7 @@ store = Rodux.Store.new(reducer, initialState, middlewares, {
 })
 
 return {
-    store = store :: Store,
-    useUIState = useUIState,
+    store = store,
+    useState = useState,
     creators = creators,
 }

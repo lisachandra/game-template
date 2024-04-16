@@ -1,12 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerScripts = script.Parent
 
 local Camera = workspace.CurrentCamera
 
 local Packages = ReplicatedStorage.Packages
-local Shared = ReplicatedStorage.Shared
 local Hooks = script.Hooks
 
-local ReactRouter = require(Shared.ReactRouter)
+local ReactRouter = require(PlayerScripts.ReactRouter)
 local React = require(Packages.React)
 local Sift = require(Packages.Sift)
 

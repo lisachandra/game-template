@@ -1,3 +1,26 @@
+--[[
+local Shared = game:GetService("ReplicatedStorage").Shared
+local Configurations = require(Shared.Configurations)
+
+local Sounds = Configurations.Sounds
+
+local Settings = {
+	Occlusion = {
+		MaterialReflect = Sounds.MaterialReflect,
+		Rays = Sounds.rays,
+		Fallback = Sounds.fallback,
+		FilterDescendants = {},
+		RayLength = Sounds.length,
+		IgnoreWater = Sounds.ignore_water,
+		MaxBounce = Sounds.bounces,
+	},
+
+	DelaySound = {
+		Speed = Sounds.sound_delay,
+	},
+}
+]]
+
 local Settings = {
 	Occlusion = {
 		MaterialReflect = {

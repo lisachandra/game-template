@@ -1,4 +1,5 @@
 --!nocheck
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 -- only to be used for realism stuff
@@ -238,7 +239,7 @@ function DynamicSoundHandler:Play(SoundName, Target: Vector3 | Instance, Play: (
 	end
 end
 
-local Sounds = {}; for _index, Sound in script.Parent.Parent.Parent.Sounds:GetDescendants() do
+local Sounds = {}; for _index, Sound in ReplicatedStorage.Sounds:GetDescendants() do
 	if Sound:IsA("Sound") then
 		Sounds[`{Sound.Parent}_{Sound.Name}`] = Sound
 	end
