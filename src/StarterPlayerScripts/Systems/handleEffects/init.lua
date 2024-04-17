@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local Rodux = require(Shared.Rodux)
 local Matter = require(Shared.Matter)
 
 local Bridges = require(Shared.Bridges)
@@ -13,15 +12,6 @@ local processors: Dictionary<(...any) -> ()> = {}; for _index, processor in scri
 end
 
 local function handleEffects(world: Matter.World)
-	for _index, args: table in Matter.useEvent(Bridges, "Time") do
-		local serverTime: number = table.unpack(args)
-
-		Rodux.store:dispatch({
-			type = "serverTime",
-			value = serverTime,
-		})
-	end
-
 	local iterator = Matter.useEvent(Bridges, "Replication"); while true do
 		local args = table.pack(iterator()); if args.n > 0 then
 			local _index, processor: string = table.remove(args, 1), table.remove(args[1], 1) :: any
