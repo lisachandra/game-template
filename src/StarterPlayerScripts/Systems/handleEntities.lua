@@ -1,7 +1,4 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local LocalPlayer = Players.LocalPlayer
 
 local Shared = ReplicatedStorage.Shared
 local Packages = ReplicatedStorage.Packages
@@ -11,13 +8,7 @@ local Matter = require(Shared.Matter)
 
 local Components = require(Shared.Matter.Components)
 
-local clientEntityId: number
-
 local function handleEntities(world: Matter.World)
-	if not clientEntityId then
-		clientEntityId = LocalPlayer:GetAttribute("clientEntityId")
-	end
-
 	for entityId, record in world:queryChanged(Components.PlayerData) do
 		if not (not record.old and record.new) then
 			if record.old and not record.new then
