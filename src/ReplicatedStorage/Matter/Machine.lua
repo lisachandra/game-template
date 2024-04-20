@@ -23,34 +23,4 @@ export type Storage<T = string, U = table> = {
 
 local Machine = {}
 
---[[
-    This function should only be used as a utility function for creating a new machine (not using it),
-    therefore the lazy types.
-]]
-function Machine.createMovementMachine<T, U>(
-    useMachine: (...any) -> ...any,
-    entityId: number,
-    machine: Machine<T, U>
-): any
-    local function next(context, event: { state: any })
-        return {
-            changed = os.clock(),
-            previous = context.value,
-            value = event.state,
-        }
-    end
-
-    return useMachine(entityId, machine, {
-        next = next,
-
-        walk = function(context, _event)
-            return next(context, { state = "Humanoid" })
-        end,
-
-        stun = function(context, _event)
-            return next(context, { state = "Stunned" })
-        end,
-    })
-end
-
 return Machine
